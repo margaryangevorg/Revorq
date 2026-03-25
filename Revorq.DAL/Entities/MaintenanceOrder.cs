@@ -10,7 +10,7 @@ public class MaintenanceOrder
     public Elevator Elevator { get; set; } = null!;
 
     /// <summary>Assigned by Manager</summary>
-    public string AssignedEngineerId { get; set; } = string.Empty;
+    public int AssignedEngineerId { get; set; }
     public AppUser AssignedEngineer { get; set; } = null!;
 
     public MaintenanceType MaintenanceType { get; set; }

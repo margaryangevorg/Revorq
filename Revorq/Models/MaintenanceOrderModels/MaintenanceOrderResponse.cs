@@ -6,7 +6,7 @@ public class MaintenanceOrderResponse
     public int ElevatorId { get; set; }
     public string ElevatorLabel { get; set; } = string.Empty;
     public string BuildingName { get; set; } = string.Empty;
-    public string AssignedEngineerId { get; set; } = string.Empty;
+    public int AssignedEngineerId { get; set; }
     public string AssignedEngineerName { get; set; } = string.Empty;
     public string MaintenanceType { get; set; } = string.Empty;
     public DateTime ScheduledDate { get; set; }

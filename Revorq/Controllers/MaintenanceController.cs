@@ -28,7 +28,7 @@ public class MaintenanceController : ControllerBase
     [HttpGet("monthly")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
     public async Task<IActionResult> GetMonthlyList(
-        [FromQuery] string engineerId,
+        [FromQuery] int engineerId,
         [FromQuery] int year,
         [FromQuery] int month)
     {

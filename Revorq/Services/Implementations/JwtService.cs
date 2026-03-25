@@ -25,7 +25,7 @@ public class JwtService : IJwtService
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
@@ -37,7 +37,7 @@ public class JwtService : IJwtService
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiry = DateTime.UtcNow.AddDays(int.Parse(_config["Jwt:ExpiryDays"] ?? "7"));
+        var expiry = DateTime.Now.AddDays(int.Parse(_config["Jwt:ExpiryDays"] ?? "7"));
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],

@@ -37,7 +37,7 @@ public class CompanyService : ICompanyService
         {
             Name = request.CompanyName,
             Status = CompanyStatus.Pending,
-            RegisteredAt = DateTime.UtcNow
+            RegisteredAt = DateTime.Now
         };
 
         await _companyRepository.AddAsync(company);
@@ -70,7 +70,7 @@ public class CompanyService : ICompanyService
             Email = user.Email ?? string.Empty,
             FullName = $"{user.FirstName} {user.LastName}",
             Role = Role.Admin.ToString(),
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.Now
         });
     }
 
@@ -84,7 +84,7 @@ public class CompanyService : ICompanyService
         if (invite.IsUsed)
             return ServiceResult<AuthResponse>.Error("This invite token has already been used.");
 
-        if (invite.ExpiresAt < DateTime.UtcNow)
+        if (invite.ExpiresAt < DateTime.Now)
             return ServiceResult<AuthResponse>.Error("This invite token has expired.");
 
         if (invite.Company.Status != CompanyStatus.Approved)
@@ -122,7 +122,7 @@ public class CompanyService : ICompanyService
             Email = user.Email ?? string.Empty,
             FullName = $"{user.FirstName} {user.LastName}",
             Role = invite.Role.ToString(),
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = DateTime.Now.AddDays(7)
         });
     }
 
@@ -135,7 +135,7 @@ public class CompanyService : ICompanyService
         if (company.Status != CompanyStatus.Approved)
             return ServiceResult<InviteResponse>.Error("Cannot generate invites for a non-approved company.");
 
-        var expiresAt = DateTime.UtcNow.AddHours(request.ExpiryHours);
+        var expiresAt = DateTime.Now.AddHours(request.ExpiryHours);
 
         var invite = new InvitationToken
         {
@@ -143,7 +143,7 @@ public class CompanyService : ICompanyService
             CompanyId = companyId,
             Role = request.Role,
             ExpiresAt = expiresAt,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         await _tokenRepository.AddAsync(invite);

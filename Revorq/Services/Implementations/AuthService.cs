@@ -56,7 +56,7 @@ public class AuthService : IAuthService
             Email = user.Email ?? string.Empty,
             FullName = $"{user.FirstName} {user.LastName}",
             Role = roles.FirstOrDefault() ?? string.Empty,
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = DateTime.Now.AddDays(7)
         });
     }
 }

@@ -11,7 +11,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     public MaintenanceOrderRepository(AppDbContext context) : base(context) { }
 
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersByEngineerAsync(
-        string engineerId, int year, int month)
+        int engineerId, int year, int month)
     {
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
