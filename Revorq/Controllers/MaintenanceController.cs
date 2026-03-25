@@ -1,6 +1,6 @@
 using Revorq.API.Models.MaintenanceOrderModels;
 using Revorq.API.Services.Interfaces;
-using Revorq.DAL.Constants;
+using Revorq.DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,14 +19,14 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpGet("elevators")]
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Manager}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> GetElevatorsUnderMaintenance([FromQuery] DateTime untilDate)
     {
         return Ok(await _maintenanceService.GetOrdersUntilDateAsync(untilDate));
     }
 
     [HttpGet("monthly")]
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Manager},{Roles.MaintenanceEngineer}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
     public async Task<IActionResult> GetMonthlyList(
         [FromQuery] string engineerId,
         [FromQuery] int year,
@@ -36,14 +36,14 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpGet("unscheduled")]
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Manager}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> GetUnscheduled()
     {
         return Ok(await _maintenanceService.GetUnscheduledAsync());
     }
 
     [HttpPost]
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Manager}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {
         var result = await _maintenanceService.CreateOrderAsync(request);
@@ -60,7 +60,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPut("{id}/complete")]
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Manager},{Roles.MaintenanceEngineer}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
     public async Task<IActionResult> CompleteOrder(int id, [FromBody] CompleteOrderRequest request)
     {
         var result = await _maintenanceService.CompleteOrderAsync(id, request);
@@ -70,7 +70,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _maintenanceService.DeleteAsync(id);

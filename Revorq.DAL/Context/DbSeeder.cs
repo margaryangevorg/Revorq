@@ -1,4 +1,4 @@
-using Revorq.DAL.Constants;
+using Revorq.DAL.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace Revorq.DAL.Context;
@@ -7,12 +7,11 @@ public static class DbSeeder
 {
     public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
     {
-        string[] roles = [Roles.Admin, Roles.Manager, Roles.MaintenanceEngineer];
-
-        foreach (var role in roles)
+        foreach (var role in Enum.GetValues<Role>())
         {
-            if (!await roleManager.RoleExistsAsync(role))
-                await roleManager.CreateAsync(new IdentityRole(role));
+            var roleName = role.ToString();
+            if (!await roleManager.RoleExistsAsync(roleName))
+                await roleManager.CreateAsync(new IdentityRole(roleName));
         }
     }
 }

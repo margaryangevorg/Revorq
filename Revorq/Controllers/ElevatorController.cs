@@ -1,6 +1,6 @@
 using Revorq.API.Models.ElevatorModels;
 using Revorq.API.Services.Interfaces;
-using Revorq.DAL.Constants;
+using Revorq.DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,7 +33,7 @@ public class ElevatorController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Manager}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> Create([FromBody] ElevatorRequest request)
     {
         var result = await _elevatorService.CreateAsync(request);
@@ -42,7 +42,7 @@ public class ElevatorController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = $"{Roles.Admin},{Roles.Manager}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> Update(int id, [FromBody] ElevatorRequest request)
     {
         var result = await _elevatorService.UpdateAsync(id, request);
@@ -52,7 +52,7 @@ public class ElevatorController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _elevatorService.DeleteAsync(id);

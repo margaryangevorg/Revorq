@@ -1,3 +1,5 @@
+using Revorq.DAL.Enums;
+
 namespace Revorq.API.Models.AuthModels;
 
 public class RegisterRequest
@@ -7,5 +9,5 @@ public class RegisterRequest
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string ConfirmPassword { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
+    public Role Role { get; set; }
 }

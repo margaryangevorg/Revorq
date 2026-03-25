@@ -1,7 +1,6 @@
 using Revorq.API.Models;
 using Revorq.API.Models.AuthModels;
 using Revorq.API.Services.Interfaces;
-using Revorq.DAL.Constants;
 using Revorq.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -28,10 +27,6 @@ public class AuthService : IAuthService
         if (request.Password != request.ConfirmPassword)
             return ServiceResult<AuthResponse>.Error("Passwords do not match.");
 
-        var allowedRoles = new[] { Roles.Admin, Roles.Manager, Roles.MaintenanceEngineer };
-        if (!allowedRoles.Contains(request.Role))
-            return ServiceResult<AuthResponse>.Error($"Invalid role. Allowed: {string.Join(", ", allowedRoles)}");
-
         var user = new AppUser
         {
             FirstName = request.FirstName,
@@ -44,7 +39,8 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             return ServiceResult<AuthResponse>.Error(string.Join("; ", result.Errors.Select(e => e.Description)));
 
-        await _userManager.AddToRoleAsync(user, request.Role);
+        var roleName = request.Role.ToString();
+        await _userManager.AddToRoleAsync(user, roleName);
         var token = await _jwtService.GenerateTokenAsync(user);
 
         return ServiceResult<AuthResponse>.Ok(new AuthResponse
@@ -52,7 +48,7 @@ public class AuthService : IAuthService
             Token = token,
             Email = user.Email!,
             FullName = $"{user.FirstName} {user.LastName}",
-            Role = request.Role,
+            Role = roleName,
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         });
     }

@@ -1,6 +1,6 @@
 using Revorq.API.Models.BuildingModels;
 using Revorq.API.Services.Interfaces;
-using Revorq.DAL.Constants;
+using Revorq.DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +8,7 @@ namespace Revorq.API.Controllers;
 
 [ApiController]
 [Route("api/building")]
-[Authorize(Roles = $"{Roles.Admin},{Roles.Manager}")]
+[Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
 public class BuildingController : ControllerBase
 {
     private readonly IBuildingService _buildingService;
@@ -33,7 +33,7 @@ public class BuildingController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Create([FromBody] BuildingRequest request)
     {
         var response = await _buildingService.CreateAsync(request);
@@ -41,7 +41,7 @@ public class BuildingController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Update(int id, [FromBody] BuildingRequest request)
     {
         var result = await _buildingService.UpdateAsync(id, request);
@@ -50,7 +50,7 @@ public class BuildingController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _buildingService.DeleteAsync(id);
