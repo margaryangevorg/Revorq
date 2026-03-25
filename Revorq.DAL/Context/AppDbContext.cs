@@ -8,6 +8,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<InvitationToken> InvitationTokens => Set<InvitationToken>();
     public DbSet<Building> Buildings => Set<Building>();
     public DbSet<Elevator> Elevators => Set<Elevator>();
     public DbSet<MaintenanceOrder> MaintenanceOrders => Set<MaintenanceOrder>();
@@ -15,6 +17,37 @@ public class AppDbContext : IdentityDbContext<AppUser>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<Company>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.Property(c => c.Name).IsRequired().HasMaxLength(200);
+            e.Property(c => c.Status).HasConversion<string>();
+        });
+
+        builder.Entity<InvitationToken>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Token).IsRequired().HasMaxLength(100);
+            e.Property(t => t.Role).HasConversion<string>();
+
+            e.HasOne(t => t.Company)
+             .WithMany(c => c.InvitationTokens)
+             .HasForeignKey(t => t.CompanyId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(t => t.Token).IsUnique();
+        });
+
+        builder.Entity<AppUser>(e =>
+        {
+            e.Property(u => u.CompanyId).IsRequired();
+
+            e.HasOne(u => u.Company)
+             .WithMany(c => c.Members)
+             .HasForeignKey(u => u.CompanyId)
+             .OnDelete(DeleteBehavior.Restrict);
+        });
 
         builder.Entity<Building>(e =>
         {
@@ -39,9 +72,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
         {
             e.HasKey(o => o.Id);
 
-            e.Property(o => o.MaintenanceType)
-             .HasConversion<string>();
-
+            e.Property(o => o.MaintenanceType).HasConversion<string>();
             e.Property(o => o.ShortDescription).HasMaxLength(1000);
 
             e.HasOne(o => o.Elevator)

@@ -7,5 +7,8 @@ public class AppUser : IdentityUser
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
 
+    public int CompanyId { get; set; }
+    public Company Company { get; set; } = null!;
+
     public ICollection<MaintenanceOrder> AssignedOrders { get; set; } = [];
 }
