@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Revorq.DAL/Revorq.DAL.csproj" />
+  <Project Path="Revorq/Revorq.csproj" />
+</Solution>
