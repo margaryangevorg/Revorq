@@ -11,6 +11,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
 
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<InvitationToken> InvitationTokens => Set<InvitationToken>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Building> Buildings => Set<Building>();
     public DbSet<Elevator> Elevators => Set<Elevator>();
     public DbSet<MaintenanceOrder> MaintenanceOrders => Set<MaintenanceOrder>();
@@ -48,6 +49,18 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .WithMany(c => c.Members)
              .HasForeignKey(u => u.CompanyId)
              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<RefreshToken>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Token).IsRequired().HasMaxLength(200);
+            e.HasIndex(t => t.Token).IsUnique();
+
+            e.HasOne(t => t.User)
+             .WithMany()
+             .HasForeignKey(t => t.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<Building>(e =>

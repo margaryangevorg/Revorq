@@ -13,17 +13,20 @@ public class CompanyService : ICompanyService
 {
     private readonly ICompanyRepository _companyRepository;
     private readonly IInvitationTokenRepository _tokenRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly UserManager<AppUser> _userManager;
     private readonly IJwtService _jwtService;
 
     public CompanyService(
         ICompanyRepository companyRepository,
         IInvitationTokenRepository tokenRepository,
+        IRefreshTokenRepository refreshTokenRepository,
         UserManager<AppUser> userManager,
         IJwtService jwtService)
     {
         _companyRepository = companyRepository;
         _tokenRepository = tokenRepository;
+        _refreshTokenRepository = refreshTokenRepository;
         _userManager = userManager;
         _jwtService = jwtService;
     }
@@ -113,15 +116,26 @@ public class CompanyService : ICompanyService
         _tokenRepository.Update(invite);
         await _tokenRepository.SaveChangesAsync();
 
-        var token = await _jwtService.GenerateTokenAsync(user);
+        var (accessToken, accessExpiresAt) = await _jwtService.GenerateAccessTokenAsync(user);
+        var (refreshToken, refreshExpiresAt) = _jwtService.GenerateRefreshToken();
+
+        await _refreshTokenRepository.AddAsync(new RefreshToken
+        {
+            Token = refreshToken,
+            UserId = user.Id,
+            ExpiresAt = refreshExpiresAt
+        });
+        await _refreshTokenRepository.SaveChangesAsync();
 
         return ServiceResult<AuthResponse>.Ok(new AuthResponse
         {
-            Token = token,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
             Email = user.Email ?? string.Empty,
             FullName = $"{user.FirstName} {user.LastName}",
             Role = invite.Role.ToString(),
-            ExpiresAt = DateTime.Now.AddDays(7)
+            AccessTokenExpiresAt = accessExpiresAt,
+            RefreshTokenExpiresAt = refreshExpiresAt
         });
     }
 

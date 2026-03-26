@@ -14,17 +14,20 @@ public class AuthService : IAuthService
     private readonly SignInManager<AppUser> _signInManager;
     private readonly IJwtService _jwtService;
     private readonly ICompanyRepository _companyRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
 
     public AuthService(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         IJwtService jwtService,
-        ICompanyRepository companyRepository)
+        ICompanyRepository companyRepository,
+        IRefreshTokenRepository refreshTokenRepository)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtService = jwtService;
         _companyRepository = companyRepository;
+        _refreshTokenRepository = refreshTokenRepository;
     }
 
     public async Task<ServiceResult<AuthResponse>> LoginAsync(LoginRequest request)
@@ -48,15 +51,50 @@ public class AuthService : IAuthService
             return ServiceResult<AuthResponse>.Error("Your company registration was rejected.");
 
         var roles = await _userManager.GetRolesAsync(user);
-        var token = await _jwtService.GenerateTokenAsync(user);
+        return ServiceResult<AuthResponse>.Ok(await BuildAuthResponseAsync(user, roles.FirstOrDefault() ?? string.Empty));
+    }
 
-        return ServiceResult<AuthResponse>.Ok(new AuthResponse
+    public async Task<ServiceResult<AuthResponse>> RefreshAsync(string refreshToken)
+    {
+        var stored = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+
+        if (stored is null || stored.IsRevoked)
+            return ServiceResult<AuthResponse>.Error("Invalid refresh token.");
+
+        if (stored.ExpiresAt < DateTime.Now)
+            return ServiceResult<AuthResponse>.Error("Refresh token has expired.");
+
+        // Revoke the used token (rotation)
+        stored.IsRevoked = true;
+        _refreshTokenRepository.Update(stored);
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        var roles = await _userManager.GetRolesAsync(stored.User);
+        return ServiceResult<AuthResponse>.Ok(await BuildAuthResponseAsync(stored.User, roles.FirstOrDefault() ?? string.Empty));
+    }
+
+    private async Task<AuthResponse> BuildAuthResponseAsync(AppUser user, string role)
+    {
+        var (accessToken, accessExpiresAt) = await _jwtService.GenerateAccessTokenAsync(user);
+        var (refreshToken, refreshExpiresAt) = _jwtService.GenerateRefreshToken();
+
+        await _refreshTokenRepository.AddAsync(new RefreshToken
         {
-            Token = token,
+            Token = refreshToken,
+            UserId = user.Id,
+            ExpiresAt = refreshExpiresAt
+        });
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        return new AuthResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
             Email = user.Email ?? string.Empty,
             FullName = $"{user.FirstName} {user.LastName}",
-            Role = roles.FirstOrDefault() ?? string.Empty,
-            ExpiresAt = DateTime.Now.AddDays(7)
-        });
+            Role = role,
+            AccessTokenExpiresAt = accessExpiresAt,
+            RefreshTokenExpiresAt = refreshExpiresAt
+        };
     }
 }

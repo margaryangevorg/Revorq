@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Revorq.API.Services.Implementations;
@@ -19,7 +20,7 @@ public class JwtService : IJwtService
         _userManager = userManager;
     }
 
-    public async Task<string> GenerateTokenAsync(AppUser user)
+    public async Task<(string token, DateTime expiresAt)> GenerateAccessTokenAsync(AppUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);
 
@@ -32,20 +33,26 @@ public class JwtService : IJwtService
         };
 
         claims.Add(new Claim("CompanyId", user.CompanyId.ToString()));
-
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiry = DateTime.Now.AddDays(int.Parse(_config["Jwt:ExpiryDays"] ?? "7"));
+        var expiresAt = DateTime.Now.AddMinutes(int.Parse(_config["Jwt:ExpiryMinutes"] ?? "60"));
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: expiry,
+            expires: expiresAt,
             signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+    }
+
+    public (string token, DateTime expiresAt) GenerateRefreshToken()
+    {
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var expiresAt = DateTime.Now.AddDays(int.Parse(_config["Jwt:RefreshExpiryDays"] ?? "30"));
+        return (token, expiresAt);
     }
 }
