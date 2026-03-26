@@ -6,7 +6,7 @@ namespace Revorq.API.Services.Interfaces;
 
 public interface ICompanyService
 {
-    Task<ServiceResult<AuthResponse>> RegisterCompanyAsync(RegisterCompanyRequest request);
+    Task<ServiceResult<RegisterCompanyResponse>> RegisterCompanyAsync(RegisterCompanyRequest request);
     Task<ServiceResult<AuthResponse>> JoinWithTokenAsync(JoinWithTokenRequest request);
     Task<ServiceResult<InviteResponse>> GenerateInviteAsync(int companyId, InviteRequest request);
     Task<ServiceResult<bool>> ApproveCompanyAsync(int id);

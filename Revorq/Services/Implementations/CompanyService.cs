@@ -28,16 +28,16 @@ public class CompanyService : ICompanyService
         _jwtService = jwtService;
     }
 
-    public async Task<ServiceResult<AuthResponse>> RegisterCompanyAsync(RegisterCompanyRequest request)
+    public async Task<ServiceResult<RegisterCompanyResponse>> RegisterCompanyAsync(RegisterCompanyRequest request)
     {
         if (await _userManager.FindByNameAsync(request.Username) is not null)
-            return ServiceResult<AuthResponse>.Error("Username is already taken.");
+            return ServiceResult<RegisterCompanyResponse>.Error("Username is already taken.");
 
         var company = new Company
         {
             Name = request.CompanyName,
             Status = CompanyStatus.Pending,
-            RegisteredAt = DateTime.Now
+            RegisteredAt = DateTime.UtcNow
         };
 
         await _companyRepository.AddAsync(company);
@@ -59,18 +59,17 @@ public class CompanyService : ICompanyService
         {
             _companyRepository.Delete(company);
             await _companyRepository.SaveChangesAsync();
-            return ServiceResult<AuthResponse>.Error(string.Join("; ", result.Errors.Select(e => e.Description)));
+            return ServiceResult<RegisterCompanyResponse>.Error(string.Join("; ", result.Errors.Select(e => e.Description)));
         }
 
         await _userManager.AddToRoleAsync(user, Role.Admin.ToString());
 
-        return ServiceResult<AuthResponse>.Ok(new AuthResponse
+        return ServiceResult<RegisterCompanyResponse>.Ok(new RegisterCompanyResponse
         {
-            Token = string.Empty, // No token until approved
-            Email = user.Email ?? string.Empty,
-            FullName = $"{user.FirstName} {user.LastName}",
-            Role = Role.Admin.ToString(),
-            ExpiresAt = DateTime.Now
+            CompanyId = company.Id,
+            CompanyName = company.Name,
+            AdminUsername = user.UserName!,
+            FullName = $"{user.FirstName} {user.LastName}"
         });
     }
 

@@ -28,7 +28,7 @@ public class CompanyController : ControllerBase
         if (!result.IsSuccess)
             return BadRequest(result.ErrorMessage);
 
-        return Ok(new { message = "Company registered successfully. Awaiting approval.", company = result.Data });
+        return Ok(result.Data);
     }
 
     // Called by mobile app — no auth required
