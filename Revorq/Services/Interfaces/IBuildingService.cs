@@ -7,6 +7,7 @@ public interface IBuildingService
 {
     Task<IEnumerable<BuildingResponse>> GetAllAsync();
     Task<ServiceResult<BuildingWithElevatorsResponse>> GetByIdAsync(int id);
+    Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name);
     Task<BuildingResponse> CreateAsync(BuildingRequest request);
     Task<ServiceResult<bool>> UpdateAsync(int id, BuildingRequest request);
     Task<ServiceResult<bool>> DeleteAsync(int id);

@@ -27,6 +27,26 @@ public class BuildingService : IBuildingService
         });
     }
 
+    public async Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name)
+    {
+        var building = await _repository.GetByNameAsync(name);
+        if (building is null)
+            return ServiceResult<BuildingWithElevatorsResponse>.NotFound($"Building '{name}' not found.");
+
+        return ServiceResult<BuildingWithElevatorsResponse>.Ok(new BuildingWithElevatorsResponse
+        {
+            Id = building.Id,
+            Name = building.Name,
+            Address = building.Address,
+            Elevators = building.Elevators.Select(el => new ElevatorSummary
+            {
+                Id = el.Id,
+                Label = el.Label,
+                SerialNumber = el.SerialNumber
+            }).ToList()
+        });
+    }
+
     public async Task<ServiceResult<BuildingWithElevatorsResponse>> GetByIdAsync(int id)
     {
         var building = await _repository.GetWithElevatorsAsync(id);

@@ -24,7 +24,15 @@ public class BuildingController : ControllerBase
         return Ok(await _buildingService.GetAllAsync());
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("byName/{name}")]
+    public async Task<IActionResult> GetByName(string name)
+    {
+        var result = await _buildingService.GetByNameAsync(name);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        return Ok(result.Data);
+    }
+
+    [HttpGet("byId/{id}")]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _buildingService.GetByIdAsync(id);

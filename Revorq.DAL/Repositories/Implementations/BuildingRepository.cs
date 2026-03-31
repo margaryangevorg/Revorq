@@ -16,4 +16,12 @@ public class BuildingRepository : Repository<Building>, IBuildingRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == buildingId);
     }
+
+    public async Task<Building?> GetByNameAsync(string name)
+    {
+        return await _context.Buildings
+            .Include(b => b.Elevators)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Name.ToLower() == name.ToLower());
+    }
 }
