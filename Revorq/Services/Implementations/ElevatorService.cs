@@ -8,11 +8,11 @@ namespace Revorq.API.Services.Implementations;
 
 public class ElevatorService : IElevatorService
 {
-    private readonly IRepository<Elevator> _elevatorRepository;
+    private readonly IElevatorRepository _elevatorRepository;
     private readonly IBuildingRepository _buildingRepository;
 
     public ElevatorService(
-        IRepository<Elevator> elevatorRepository,
+        IElevatorRepository elevatorRepository,
         IBuildingRepository buildingRepository)
     {
         _elevatorRepository = elevatorRepository;
@@ -37,8 +37,15 @@ public class ElevatorService : IElevatorService
     public async Task<ServiceResult<bool>> CreateAsync(ElevatorRequest request)
     {
         var building = await _buildingRepository.GetByIdAsync(request.BuildingId);
+
         if (building is null)
             return ServiceResult<bool>.Error($"Building {request.BuildingId} not found.");
+
+        if (await _elevatorRepository.GetBySerialNumberAsync(request.SerialNumber) is not null)
+            return ServiceResult<bool>.Error("An elevator with this serial number already exists.");
+
+        if (await _elevatorRepository.GetByNumberInProjectAsync(request.BuildingId, request.NumberInProject) is not null)
+            return ServiceResult<bool>.Error("An elevator with this number in project already exists for this building.");
 
         var elevator = new Elevator
         {

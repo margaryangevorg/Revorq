@@ -67,8 +67,12 @@ public class BuildingService : IBuildingService
         });
     }
 
-    public async Task<BuildingResponse> CreateAsync(BuildingRequest request)
+    public async Task<ServiceResult<bool>> CreateAsync(BuildingRequest request)
     {
+        var existing = await _repository.GetByNameAsync(request.Name);
+        if (existing is not null)
+            return ServiceResult<bool>.Error("The building name already exists.");
+
         var building = new Building
         {
             Name = request.Name,
@@ -78,13 +82,7 @@ public class BuildingService : IBuildingService
         await _repository.AddAsync(building);
         await _repository.SaveChangesAsync();
 
-        return new BuildingResponse
-        {
-            Id = building.Id,
-            Name = building.Name,
-            Address = building.Address,
-            ElevatorCount = 0
-        };
+        return ServiceResult<bool>.Ok(true);
     }
 
     public async Task<ServiceResult<bool>> UpdateAsync(int id, BuildingRequest request)

@@ -81,6 +81,7 @@ builder.Services.AddAuthentication(options =>
 // Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBuildingRepository, BuildingRepository>();
+builder.Services.AddScoped<IElevatorRepository, ElevatorRepository>();
 builder.Services.AddScoped<IMaintenanceOrderRepository, MaintenanceOrderRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IInvitationTokenRepository, InvitationTokenRepository>();

@@ -44,8 +44,12 @@ public class BuildingController : ControllerBase
     [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Create([FromBody] BuildingRequest request)
     {
-        var response = await _buildingService.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+        var result = await _buildingService.CreateAsync(request);
+
+        if (!result.IsSuccess) 
+            return BadRequest(result.ErrorMessage);
+
+        return Ok();
     }
 
     [HttpPut("{id}")]
