@@ -106,7 +106,7 @@ public class MaintenanceService : IMaintenanceService
     {
         Id = o.Id,
         ElevatorId = o.ElevatorId,
-        ElevatorLabel = o.Elevator?.Label ?? string.Empty,
+        ElevatorNumberInProject = o.Elevator?.NumberInProject ?? string.Empty,
         BuildingName = o.Elevator?.Building?.Name ?? string.Empty,
         AssignedEngineerId = o.AssignedEngineerId,
         AssignedEngineerName = o.AssignedEngineer is null

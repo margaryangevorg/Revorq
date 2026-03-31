@@ -73,8 +73,14 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         builder.Entity<Elevator>(e =>
         {
             e.HasKey(el => el.Id);
-            e.Property(el => el.Label).IsRequired().HasMaxLength(20);
-            e.Property(el => el.SerialNumber).HasMaxLength(100);
+            e.Property(el => el.NumberInProject).IsRequired().HasMaxLength(50);
+            e.Property(el => el.SerialNumber).IsRequired().HasMaxLength(100);
+            e.HasIndex(el => el.SerialNumber).IsUnique();
+            e.Property(el => el.Model).HasMaxLength(150);
+            e.Property(el => el.ProductionCountry).HasMaxLength(100);
+            e.Property(el => el.CustomerFullName).HasMaxLength(200);
+            e.Property(el => el.CustomerPhoneNumber).HasMaxLength(50);
+            e.Property(el => el.WarrantyType).HasConversion<int>();
 
             e.HasOne(el => el.Building)
              .WithMany(b => b.Elevators)

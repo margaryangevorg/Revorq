@@ -20,7 +20,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
                      && o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month)
             .OrderBy(o => o.Elevator.Building.Name)
-            .ThenBy(o => o.Elevator.Label)
+            .ThenBy(o => o.Elevator.NumberInProject)
             .AsNoTracking()
             .ToListAsync();
     }

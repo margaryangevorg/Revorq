@@ -4,7 +4,7 @@ public class MaintenanceOrderResponse
 {
     public int Id { get; set; }
     public int ElevatorId { get; set; }
-    public string ElevatorLabel { get; set; } = string.Empty;
+    public string ElevatorNumberInProject { get; set; } = string.Empty;
     public string BuildingName { get; set; } = string.Empty;
     public int AssignedEngineerId { get; set; }
     public string AssignedEngineerName { get; set; } = string.Empty;

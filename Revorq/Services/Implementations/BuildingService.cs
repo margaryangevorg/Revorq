@@ -41,7 +41,7 @@ public class BuildingService : IBuildingService
             Elevators = building.Elevators.Select(el => new ElevatorSummary
             {
                 Id = el.Id,
-                Label = el.Label,
+                NumberInProject = el.NumberInProject,
                 SerialNumber = el.SerialNumber
             }).ToList()
         });
@@ -61,7 +61,7 @@ public class BuildingService : IBuildingService
             Elevators = building.Elevators.Select(el => new ElevatorSummary
             {
                 Id = el.Id,
-                Label = el.Label,
+                NumberInProject = el.NumberInProject,
                 SerialNumber = el.SerialNumber
             }).ToList()
         });

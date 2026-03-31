@@ -33,12 +33,15 @@ public class ElevatorController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    [Authorize(Roles = $"{nameof(Role.Admin)}")]
     public async Task<IActionResult> Create([FromBody] ElevatorRequest request)
     {
         var result = await _elevatorService.CreateAsync(request);
-        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
-        return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.ErrorMessage);
+
+        return Ok();
     }
 
     [HttpPut("{id}")]

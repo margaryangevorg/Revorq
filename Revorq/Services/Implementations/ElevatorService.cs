@@ -22,14 +22,7 @@ public class ElevatorService : IElevatorService
     public async Task<IEnumerable<ElevatorResponse>> GetAllAsync()
     {
         var elevators = await _elevatorRepository.GetAllAsync();
-        return elevators.Select(el => new ElevatorResponse
-        {
-            Id = el.Id,
-            Label = el.Label,
-            SerialNumber = el.SerialNumber,
-            BuildingId = el.BuildingId,
-            BuildingName = el.Building?.Name ?? string.Empty
-        });
+        return elevators.Select(el => MapToResponse(el));
     }
 
     public async Task<ServiceResult<ElevatorResponse>> GetByIdAsync(int id)
@@ -38,40 +31,32 @@ public class ElevatorService : IElevatorService
         if (elevator is null)
             return ServiceResult<ElevatorResponse>.NotFound($"Elevator {id} not found.");
 
-        return ServiceResult<ElevatorResponse>.Ok(new ElevatorResponse
-        {
-            Id = elevator.Id,
-            Label = elevator.Label,
-            SerialNumber = elevator.SerialNumber,
-            BuildingId = elevator.BuildingId,
-            BuildingName = elevator.Building?.Name ?? string.Empty
-        });
+        return ServiceResult<ElevatorResponse>.Ok(MapToResponse(elevator));
     }
 
-    public async Task<ServiceResult<ElevatorResponse>> CreateAsync(ElevatorRequest request)
+    public async Task<ServiceResult<bool>> CreateAsync(ElevatorRequest request)
     {
         var building = await _buildingRepository.GetByIdAsync(request.BuildingId);
         if (building is null)
-            return ServiceResult<ElevatorResponse>.Error($"Building {request.BuildingId} not found.");
+            return ServiceResult<bool>.Error($"Building {request.BuildingId} not found.");
 
         var elevator = new Elevator
         {
-            Label = request.Label,
+            NumberInProject = request.NumberInProject,
             SerialNumber = request.SerialNumber,
+            Model = request.Model,
+            ProductionCountry = request.ProductionCountry,
+            CustomerFullName = request.CustomerFullName,
+            CustomerPhoneNumber = request.CustomerPhoneNumber,
+            WarrantyType = request.WarrantyType,
+            WarrantyDate = request.WarrantyDate,
             BuildingId = request.BuildingId
         };
 
         await _elevatorRepository.AddAsync(elevator);
         await _elevatorRepository.SaveChangesAsync();
 
-        return ServiceResult<ElevatorResponse>.Ok(new ElevatorResponse
-        {
-            Id = elevator.Id,
-            Label = elevator.Label,
-            SerialNumber = elevator.SerialNumber,
-            BuildingId = elevator.BuildingId,
-            BuildingName = building.Name
-        });
+        return ServiceResult<bool>.Ok(true);
     }
 
     public async Task<ServiceResult<bool>> UpdateAsync(int id, ElevatorRequest request)
@@ -84,8 +69,14 @@ public class ElevatorService : IElevatorService
         if (building is null)
             return ServiceResult<bool>.Error($"Building {request.BuildingId} not found.");
 
-        elevator.Label = request.Label;
+        elevator.NumberInProject = request.NumberInProject;
         elevator.SerialNumber = request.SerialNumber;
+        elevator.Model = request.Model;
+        elevator.ProductionCountry = request.ProductionCountry;
+        elevator.CustomerFullName = request.CustomerFullName;
+        elevator.CustomerPhoneNumber = request.CustomerPhoneNumber;
+        elevator.WarrantyType = request.WarrantyType;
+        elevator.WarrantyDate = request.WarrantyDate;
         elevator.BuildingId = request.BuildingId;
 
         _elevatorRepository.Update(elevator);
@@ -105,4 +96,20 @@ public class ElevatorService : IElevatorService
 
         return ServiceResult<bool>.Ok(true);
     }
+
+    private static ElevatorResponse MapToResponse(Elevator el, string? buildingName = null) => new()
+    {
+        Id = el.Id,
+        NumberInProject = el.NumberInProject,
+        SerialNumber = el.SerialNumber,
+        ElevatorModel = el.Model,
+        ElevatorProductionCountry = el.ProductionCountry,
+        CustomerFullName = el.CustomerFullName,
+        CustomerPhoneNumber = el.CustomerPhoneNumber,
+        WarrantyType = el.WarrantyType,
+        WarrantyDate = el.WarrantyDate,
+        CreationDate = el.CreationDate,
+        BuildingId = el.BuildingId,
+        BuildingName = buildingName ?? el.Building?.Name ?? string.Empty
+    };
 }
