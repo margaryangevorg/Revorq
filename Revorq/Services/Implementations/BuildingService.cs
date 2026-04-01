@@ -23,6 +23,7 @@ public class BuildingService : IBuildingService
             Id = b.Id,
             Name = b.Name,
             Address = b.Address,
+            BuildingType = b.BuildingType,
             ElevatorCount = b.Elevators.Count
         });
     }
@@ -38,6 +39,7 @@ public class BuildingService : IBuildingService
             Id = building.Id,
             Name = building.Name,
             Address = building.Address,
+            BuildingType = building.BuildingType,
             Elevators = building.Elevators.Select(el => new ElevatorSummary
             {
                 Id = el.Id,
@@ -58,6 +60,7 @@ public class BuildingService : IBuildingService
             Id = building.Id,
             Name = building.Name,
             Address = building.Address,
+            BuildingType = building.BuildingType,
             Elevators = building.Elevators.Select(el => new ElevatorSummary
             {
                 Id = el.Id,
@@ -76,7 +79,8 @@ public class BuildingService : IBuildingService
         var building = new Building
         {
             Name = request.Name,
-            Address = request.Address
+            Address = request.Address,
+            BuildingType = request.BuildingType
         };
 
         await _repository.AddAsync(building);
@@ -93,6 +97,7 @@ public class BuildingService : IBuildingService
 
         building.Name = request.Name;
         building.Address = request.Address;
+        building.BuildingType = request.BuildingType;
 
         _repository.Update(building);
         await _repository.SaveChangesAsync();

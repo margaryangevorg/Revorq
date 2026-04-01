@@ -68,6 +68,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.HasKey(b => b.Id);
             e.Property(b => b.Name).IsRequired().HasMaxLength(150);
             e.HasIndex(b => b.Name).IsUnique();
+            e.Property(b => b.BuildingType).HasConversion<int>();
             e.Property(b => b.Address).IsRequired().HasMaxLength(300);
             e.HasAlternateKey(b => b.Address);
         });
