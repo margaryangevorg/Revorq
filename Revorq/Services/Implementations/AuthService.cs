@@ -5,6 +5,7 @@ using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -32,17 +33,20 @@ public class AuthService : IAuthService
 
     public async Task<ServiceResult<AuthResponse>> LoginAsync(LoginRequest request)
     {
-        var user = await _userManager.FindByNameAsync(request.Username);
+        var company = await _companyRepository.GetByNameAsync(request.CompanyName);
+        if (company is null)
+            return ServiceResult<AuthResponse>.Error("Invalid username or password.");
+
+        var normalizedUsername = _userManager.NormalizeName(request.Username);
+        var user = await _userManager.Users
+            .FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUsername
+                                   && u.CompanyId == company.Id);
         if (user is null)
             return ServiceResult<AuthResponse>.Error("Invalid username or password.");
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
         if (!result.Succeeded)
             return ServiceResult<AuthResponse>.Error("Invalid username or password.");
-
-        var company = await _companyRepository.GetByIdAsync(user.CompanyId);
-        if (company is null)
-            return ServiceResult<AuthResponse>.Error("Company not found.");
 
         if (company.Status == CompanyStatus.Pending)
             return ServiceResult<AuthResponse>.Error("Your company registration is awaiting approval.");

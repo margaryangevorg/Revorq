@@ -16,4 +16,11 @@ public class CompanyRepository : Repository<Company>, ICompanyRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id);
     }
+
+    public async Task<Company?> GetByNameAsync(string name)
+    {
+        return await _context.Companies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Name == name);
+    }
 }

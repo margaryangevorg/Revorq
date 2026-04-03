@@ -25,6 +25,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         {
             e.HasKey(c => c.Id);
             e.Property(c => c.Name).IsRequired().HasMaxLength(200);
+            e.HasIndex(c => c.Name).IsUnique();
             e.Property(c => c.Status).HasConversion<string>();
         });
 
@@ -50,6 +51,13 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .WithMany(c => c.Members)
              .HasForeignKey(u => u.CompanyId)
              .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasIndex(u => u.NormalizedUserName)
+             .HasDatabaseName("UserNameIndex")
+             .IsUnique(false);
+
+            e.HasIndex(u => new { u.NormalizedUserName, u.CompanyId })
+             .IsUnique();
         });
 
         builder.Entity<RefreshToken>(e =>

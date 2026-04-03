@@ -1,5 +1,6 @@
 using Revorq.API.Services.Implementations;
 using Revorq.API.Services.Interfaces;
+using Revorq.API.Validators;
 using Revorq.DAL.Context;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Repositories.Implementations;
@@ -55,7 +56,13 @@ builder.Services.AddIdentity<AppUser, IdentityRole<int>>(options =>
     options.Password.RequireNonAlphanumeric = false;
 })
 .AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddUserValidator<CompanyScopedUserValidator>();
+
+// Replace default global username uniqueness validator with company-scoped one
+builder.Services.Remove(builder.Services.First(d =>
+    d.ServiceType == typeof(IUserValidator<AppUser>) &&
+    d.ImplementationType == typeof(UserValidator<AppUser>)));
 
 // JWT
 var jwtSecret = builder.Configuration["Jwt:Secret"]!;
