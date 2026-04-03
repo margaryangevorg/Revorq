@@ -10,6 +10,6 @@ public interface IMaintenanceService
     Task<IEnumerable<MaintenanceOrderResponse>> GetUnscheduledAsync();
     Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request);
     Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(int id);
-    Task<ServiceResult<bool>> CompleteOrderAsync(int id, CompleteOrderRequest request);
+    Task<ServiceResult<bool>> CreateReportAsync(int orderId, CreateReportRequest request);
     Task<ServiceResult<bool>> DeleteAsync(int id);
 }

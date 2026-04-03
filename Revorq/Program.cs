@@ -83,6 +83,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBuildingRepository, BuildingRepository>();
 builder.Services.AddScoped<IElevatorRepository, ElevatorRepository>();
 builder.Services.AddScoped<IMaintenanceOrderRepository, MaintenanceOrderRepository>();
+builder.Services.AddScoped<IMaintenanceReportRepository, MaintenanceReportRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IInvitationTokenRepository, InvitationTokenRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

@@ -1,3 +1,5 @@
+using Revorq.DAL.Enums;
+
 namespace Revorq.API.Models.MaintenanceOrderModels;
 
 public class MaintenanceOrderResponse
@@ -10,11 +12,7 @@ public class MaintenanceOrderResponse
     public string AssignedEngineerName { get; set; } = string.Empty;
     public string MaintenanceType { get; set; } = string.Empty;
     public DateTime ScheduledDate { get; set; }
-    public DateTime? CompletionDate { get; set; }
-    public bool IsCompleted { get; set; }
-    public bool IssueDetected { get; set; }
-    public bool VisualCheckDone { get; set; }
-    public bool AdjustmentDone { get; set; }
-    public bool CleaningDone { get; set; }
+    public OrderStatus Status { get; set; }
     public string? ShortDescription { get; set; }
+    public MaintenanceReportResponse? Report { get; set; }
 }

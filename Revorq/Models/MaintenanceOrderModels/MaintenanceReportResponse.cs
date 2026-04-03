@@ -1,6 +1,6 @@
 namespace Revorq.API.Models.MaintenanceOrderModels;
 
-public class CreateReportRequest
+public class MaintenanceReportResponse
 {
     public DateTime? JobStartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }

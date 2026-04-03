@@ -59,11 +59,11 @@ public class MaintenanceController : ControllerBase
         return Ok(result.Data);
     }
 
-    [HttpPut("{id}/complete")]
+    [HttpPost("{id}/report")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
-    public async Task<IActionResult> CompleteOrder(int id, [FromBody] CompleteOrderRequest request)
+    public async Task<IActionResult> CreateReport(int id, [FromBody] CreateReportRequest request)
     {
-        var result = await _maintenanceService.CompleteOrderAsync(id, request);
+        var result = await _maintenanceService.CreateReportAsync(id, request);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         return NoContent();

@@ -2,6 +2,7 @@ using Revorq.API.Models;
 using Revorq.API.Models.MaintenanceOrderModels;
 using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
+using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 
 namespace Revorq.API.Services.Implementations;
@@ -9,13 +10,16 @@ namespace Revorq.API.Services.Implementations;
 public class MaintenanceService : IMaintenanceService
 {
     private readonly IMaintenanceOrderRepository _orderRepository;
+    private readonly IMaintenanceReportRepository _reportRepository;
     private readonly IRepository<Elevator> _elevatorRepository;
 
     public MaintenanceService(
         IMaintenanceOrderRepository orderRepository,
+        IMaintenanceReportRepository reportRepository,
         IRepository<Elevator> elevatorRepository)
     {
         _orderRepository = orderRepository;
+        _reportRepository = reportRepository;
         _elevatorRepository = elevatorRepository;
     }
 
@@ -49,7 +53,7 @@ public class MaintenanceService : IMaintenanceService
             AssignedEngineerId = request.AssignedEngineerId,
             MaintenanceType = request.MaintenanceType,
             ScheduledDate = request.ScheduledDate,
-            IsCompleted = false
+            Status = OrderStatus.Open
         };
 
         await _orderRepository.AddAsync(order);
@@ -67,23 +71,30 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<MaintenanceOrderResponse>.Ok(MapToResponse(order));
     }
 
-    public async Task<ServiceResult<bool>> CompleteOrderAsync(int id, CompleteOrderRequest request)
+    public async Task<ServiceResult<bool>> CreateReportAsync(int orderId, CreateReportRequest request)
     {
-        var order = await _orderRepository.GetByIdAsync(id);
+        var order = await _orderRepository.GetByIdAsync(orderId);
         if (order is null)
-            return ServiceResult<bool>.NotFound($"Order {id} not found.");
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
 
-        if (order.IsCompleted)
-            return ServiceResult<bool>.Error("This order is already completed.");
+        if (order.Status == OrderStatus.Done)
+            return ServiceResult<bool>.Error("A report already exists for this order.");
 
-        order.IsCompleted = true;
-        order.CompletionDate = request.CompletionDate;
-        order.IssueDetected = request.IssueDetected;
-        order.VisualCheckDone = request.VisualCheckDone;
-        order.AdjustmentDone = request.AdjustmentDone;
-        order.CleaningDone = request.CleaningDone;
-        order.ShortDescription = request.ShortDescription;
+        var report = new MaintenanceReport
+        {
+            OrderId = orderId,
+            JobStartedDate = request.JobStartedDate,
+            CompletedDate = request.CompletedDate,
+            IssueDetected = request.IssueDetected,
+            VisualCheckDone = request.VisualCheckDone,
+            AdjustmentDone = request.AdjustmentDone,
+            CleaningDone = request.CleaningDone,
+            ShortDescription = request.ShortDescription
+        };
 
+        order.Status = OrderStatus.Done;
+
+        await _reportRepository.AddAsync(report);
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 
@@ -114,12 +125,17 @@ public class MaintenanceService : IMaintenanceService
             : $"{o.AssignedEngineer.FirstName} {o.AssignedEngineer.LastName}",
         MaintenanceType = o.MaintenanceType.ToString(),
         ScheduledDate = o.ScheduledDate,
-        CompletionDate = o.CompletionDate,
-        IsCompleted = o.IsCompleted,
-        IssueDetected = o.IssueDetected,
-        VisualCheckDone = o.VisualCheckDone,
-        AdjustmentDone = o.AdjustmentDone,
-        CleaningDone = o.CleaningDone,
-        ShortDescription = o.ShortDescription
+        Status = o.Status,
+        ShortDescription = o.ShortDescription,
+        Report = o.Report is null ? null : new MaintenanceReportResponse
+        {
+            JobStartedDate = o.Report.JobStartedDate,
+            CompletedDate = o.Report.CompletedDate,
+            IssueDetected = o.Report.IssueDetected,
+            VisualCheckDone = o.Report.VisualCheckDone,
+            AdjustmentDone = o.Report.AdjustmentDone,
+            CleaningDone = o.Report.CleaningDone,
+            ShortDescription = o.Report.ShortDescription
+        }
     };
 }

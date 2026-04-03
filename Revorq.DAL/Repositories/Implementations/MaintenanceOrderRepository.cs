@@ -16,6 +16,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
+            .Include(o => o.Report)
             .Where(o => o.AssignedEngineerId == engineerId
                      && o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month)
@@ -30,6 +31,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
+            .Include(o => o.Report)
             .Where(o => o.ScheduledDate <= untilDate)
             .AsNoTracking()
             .ToListAsync();
@@ -40,7 +42,8 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
-            .Where(o => o.MaintenanceType == MaintenanceType.Unscheduled && !o.IsCompleted)
+            .Include(o => o.Report)
+            .Where(o => o.MaintenanceType == MaintenanceType.Unscheduled && o.Status != OrderStatus.Done)
             .AsNoTracking()
             .ToListAsync();
     }

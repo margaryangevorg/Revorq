@@ -15,6 +15,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<Building> Buildings => Set<Building>();
     public DbSet<Elevator> Elevators => Set<Elevator>();
     public DbSet<MaintenanceOrder> MaintenanceOrders => Set<MaintenanceOrder>();
+    public DbSet<MaintenanceReport> MaintenanceReports => Set<MaintenanceReport>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -97,6 +98,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.HasKey(o => o.Id);
 
             e.Property(o => o.MaintenanceType).HasConversion<string>();
+            e.Property(o => o.Status).HasConversion<string>();
             e.Property(o => o.ShortDescription).HasMaxLength(1000);
 
             e.HasOne(o => o.Elevator)
@@ -110,6 +112,18 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .OnDelete(DeleteBehavior.Restrict);
 
             e.HasIndex(o => new { o.AssignedEngineerId, o.ScheduledDate });
+        });
+
+        builder.Entity<MaintenanceReport>(e =>
+        {
+            e.HasKey(r => r.OrderId);
+
+            e.Property(r => r.ShortDescription).HasMaxLength(1000);
+
+            e.HasOne(r => r.MaintenanceOrder)
+             .WithOne(o => o.Report)
+             .HasForeignKey<MaintenanceReport>(r => r.OrderId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
