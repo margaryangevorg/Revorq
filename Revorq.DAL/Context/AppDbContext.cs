@@ -84,6 +84,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.Property(el => el.CustomerFullName).HasMaxLength(200);
             e.Property(el => el.CustomerPhoneNumber).HasMaxLength(50);
             e.Property(el => el.WarrantyType).HasConversion<int>();
+            e.Property(el => el.Priority).HasConversion<int>();
 
             e.HasOne(el => el.Building)
              .WithMany(b => b.Elevators)

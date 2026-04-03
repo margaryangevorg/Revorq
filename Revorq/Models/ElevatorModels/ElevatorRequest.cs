@@ -12,5 +12,6 @@ public class ElevatorRequest
     public string? CustomerPhoneNumber { get; set; }
     public WarrantyType WarrantyType { get; set; }
     public DateTime? WarrantyDate { get; set; }
+    public Priority? Priority { get; set; }
     public int BuildingId { get; set; }
 }

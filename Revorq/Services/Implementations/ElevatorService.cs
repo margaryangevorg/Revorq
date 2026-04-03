@@ -57,6 +57,7 @@ public class ElevatorService : IElevatorService
             CustomerPhoneNumber = request.CustomerPhoneNumber,
             WarrantyType = request.WarrantyType,
             WarrantyDate = request.WarrantyDate,
+            Priority = request.Priority,
             BuildingId = request.BuildingId
         };
 
@@ -84,6 +85,7 @@ public class ElevatorService : IElevatorService
         elevator.CustomerPhoneNumber = request.CustomerPhoneNumber;
         elevator.WarrantyType = request.WarrantyType;
         elevator.WarrantyDate = request.WarrantyDate;
+        elevator.Priority = request.Priority;
         elevator.BuildingId = request.BuildingId;
 
         _elevatorRepository.Update(elevator);
@@ -115,6 +117,7 @@ public class ElevatorService : IElevatorService
         CustomerPhoneNumber = el.CustomerPhoneNumber,
         WarrantyType = el.WarrantyType,
         WarrantyDate = el.WarrantyDate,
+        Priority = el.Priority,
         CreationDate = el.CreationDate,
         BuildingId = el.BuildingId,
         BuildingName = buildingName ?? el.Building?.Name ?? string.Empty

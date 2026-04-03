@@ -13,6 +13,7 @@ public class ElevatorResponse
     public string? CustomerPhoneNumber { get; set; }
     public WarrantyType WarrantyType { get; set; }
     public DateTime? WarrantyDate { get; set; }
+    public Priority? Priority { get; set; }
     public DateTime CreationDate { get; set; }
     public int BuildingId { get; set; }
     public string BuildingName { get; set; } = string.Empty;
