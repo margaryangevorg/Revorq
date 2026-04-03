@@ -53,6 +53,7 @@ public class MaintenanceService : IMaintenanceService
             AssignedEngineerId = request.AssignedEngineerId,
             MaintenanceType = request.MaintenanceType,
             ScheduledDate = request.ScheduledDate,
+            ShortDescription = request.ShortDescription,
             Status = OrderStatus.Open
         };
 

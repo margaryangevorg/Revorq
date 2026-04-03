@@ -1,6 +1,7 @@
 using Revorq.API.Models.CompanyModels;
 using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Enums;
+using Revorq.DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,11 +13,13 @@ namespace Revorq.API.Controllers;
 public class CompanyController : ControllerBase
 {
     private readonly ICompanyService _companyService;
+    private readonly IUserService _userService;
     private readonly IConfiguration _configuration;
 
-    public CompanyController(ICompanyService companyService, IConfiguration configuration)
+    public CompanyController(ICompanyService companyService, IUserService userService, IConfiguration configuration)
     {
         _companyService = companyService;
+        _userService = userService;
         _configuration = configuration;
     }
 
@@ -55,6 +58,18 @@ public class CompanyController : ControllerBase
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
 
+        return Ok(result.Data);
+    }
+
+    [HttpGet("users")]
+    [Authorize]
+    public async Task<IActionResult> GetCompanyUsers(Role? role)
+    {
+        var companyId = GetCompanyId();
+        if (companyId is null)
+            return BadRequest("Company not found in token.");
+
+        var result = await _userService.GetCompanyUsersAsync(companyId.Value, role);
         return Ok(result.Data);
     }
 

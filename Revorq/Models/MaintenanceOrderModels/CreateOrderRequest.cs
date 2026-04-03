@@ -8,4 +8,5 @@ public class CreateOrderRequest
     public int AssignedEngineerId { get; set; }
     public MaintenanceType MaintenanceType { get; set; }
     public DateTime ScheduledDate { get; set; }
+    public string? ShortDescription { get; set; }
 }

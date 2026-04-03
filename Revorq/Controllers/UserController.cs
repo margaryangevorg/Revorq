@@ -20,10 +20,7 @@ public class UserController : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                       ?? User.FindFirstValue("sub");
-
-        if (!int.TryParse(userIdClaim, out var userId))
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
             return Unauthorized();
 
         var result = await _userService.GetUserAsync(userId);
@@ -31,4 +28,5 @@ public class UserController : ControllerBase
 
         return Ok(result.Data);
     }
+
 }
