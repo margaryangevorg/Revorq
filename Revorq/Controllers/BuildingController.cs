@@ -19,9 +19,9 @@ public class BuildingController : ControllerBase
     }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] BuildingType? type)
     {
-        return Ok(await _buildingService.GetAllAsync());
+        return Ok(await _buildingService.GetAllAsync(type));
     }
 
     [HttpGet("byName/{name}")]

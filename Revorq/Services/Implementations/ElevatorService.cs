@@ -25,6 +25,12 @@ public class ElevatorService : IElevatorService
         return elevators.Select(el => MapToResponse(el));
     }
 
+    public async Task<IEnumerable<ElevatorResponse>> GetByBuildingNameAsync(string buildingName)
+    {
+        var elevators = await _elevatorRepository.GetByBuildingNameAsync(buildingName);
+        return elevators.Select(el => MapToResponse(el));
+    }
+
     public async Task<ServiceResult<ElevatorResponse>> GetByIdAsync(int id)
     {
         var elevator = await _elevatorRepository.GetByIdAsync(id);

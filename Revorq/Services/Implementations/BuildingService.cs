@@ -2,6 +2,7 @@ using Revorq.API.Models;
 using Revorq.API.Models.BuildingModels;
 using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
+using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 
 namespace Revorq.API.Services.Implementations;
@@ -15,9 +16,9 @@ public class BuildingService : IBuildingService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<BuildingResponse>> GetAllAsync()
+    public async Task<IEnumerable<BuildingResponse>> GetAllAsync(BuildingType? type = null)
     {
-        var buildings = await _repository.GetAllAsync();
+        var buildings = await _repository.GetAllAsync(type);
         return buildings.Select(b => new BuildingResponse
         {
             Id = b.Id,

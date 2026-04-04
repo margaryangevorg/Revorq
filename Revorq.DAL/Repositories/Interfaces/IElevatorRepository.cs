@@ -6,4 +6,5 @@ public interface IElevatorRepository : IRepository<Elevator>
 {
     Task<Elevator?> GetBySerialNumberAsync(string serialNumber);
     Task<Elevator?> GetByNumberInProjectAsync(int buildingId, string numberInProject);
+    Task<IEnumerable<Elevator>> GetByBuildingNameAsync(string buildingName);
 }

@@ -24,6 +24,12 @@ public class ElevatorController : ControllerBase
         return Ok(await _elevatorService.GetAllAsync());
     }
 
+    [HttpGet("byBuildingName")]
+    public async Task<IActionResult> GetByBuildingName([FromQuery] string buildingName)
+    {
+        return Ok(await _elevatorService.GetByBuildingNameAsync(buildingName));
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

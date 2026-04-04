@@ -22,4 +22,13 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.BuildingId == buildingId && e.NumberInProject == numberInProject);
     }
+
+    public async Task<IEnumerable<Elevator>> GetByBuildingNameAsync(string buildingName)
+    {
+        return await _context.Elevators
+            .Include(e => e.Building)
+            .Where(e => e.Building.Name.ToLower() == buildingName.ToLower())
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

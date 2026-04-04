@@ -6,6 +6,7 @@ namespace Revorq.API.Services.Interfaces;
 public interface IElevatorService
 {
     Task<IEnumerable<ElevatorResponse>> GetAllAsync();
+    Task<IEnumerable<ElevatorResponse>> GetByBuildingNameAsync(string buildingName);
     Task<ServiceResult<ElevatorResponse>> GetByIdAsync(int id);
     Task<ServiceResult<bool>> CreateAsync(ElevatorRequest request);
     Task<ServiceResult<bool>> UpdateAsync(int id, ElevatorRequest request);
