@@ -9,5 +9,8 @@ public class Building
     public required string Address { get; set; }
     public BuildingType BuildingType { get; set; }
 
+    public int CompanyId { get; set; }
+    public Company Company { get; set; } = null!;
+
     public ICollection<Elevator> Elevators { get; set; } = [];
 }

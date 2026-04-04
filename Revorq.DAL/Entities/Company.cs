@@ -11,4 +11,5 @@ public class Company
 
     public ICollection<AppUser> Members { get; set; } = [];
     public ICollection<InvitationToken> InvitationTokens { get; set; } = [];
+    public ICollection<Building> Buildings { get; set; } = [];
 }

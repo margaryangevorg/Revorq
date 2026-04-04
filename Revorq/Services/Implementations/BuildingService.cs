@@ -16,9 +16,9 @@ public class BuildingService : IBuildingService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<BuildingResponse>> GetAllAsync(BuildingType? type = null)
+    public async Task<IEnumerable<BuildingResponse>> GetAllAsync(int companyId, BuildingType? type = null)
     {
-        var buildings = await _repository.GetAllAsync(type);
+        var buildings = await _repository.GetAllAsync(companyId, type);
         return buildings.Select(b => new BuildingResponse
         {
             Id = b.Id,
@@ -29,51 +29,27 @@ public class BuildingService : IBuildingService
         });
     }
 
-    public async Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name)
+    public async Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name, int companyId)
     {
-        var building = await _repository.GetByNameAsync(name);
+        var building = await _repository.GetByNameAsync(name, companyId);
         if (building is null)
             return ServiceResult<BuildingWithElevatorsResponse>.NotFound($"Building '{name}' not found.");
 
-        return ServiceResult<BuildingWithElevatorsResponse>.Ok(new BuildingWithElevatorsResponse
-        {
-            Id = building.Id,
-            Name = building.Name,
-            Address = building.Address,
-            BuildingType = building.BuildingType,
-            Elevators = building.Elevators.Select(el => new ElevatorSummary
-            {
-                Id = el.Id,
-                NumberInProject = el.NumberInProject,
-                SerialNumber = el.SerialNumber
-            }).ToList()
-        });
+        return ServiceResult<BuildingWithElevatorsResponse>.Ok(MapToWithElevatorsResponse(building));
     }
 
-    public async Task<ServiceResult<BuildingWithElevatorsResponse>> GetByIdAsync(int id)
+    public async Task<ServiceResult<BuildingWithElevatorsResponse>> GetByIdAsync(int id, int companyId)
     {
-        var building = await _repository.GetWithElevatorsAsync(id);
+        var building = await _repository.GetWithElevatorsAsync(id, companyId);
         if (building is null)
             return ServiceResult<BuildingWithElevatorsResponse>.NotFound($"Building {id} not found.");
 
-        return ServiceResult<BuildingWithElevatorsResponse>.Ok(new BuildingWithElevatorsResponse
-        {
-            Id = building.Id,
-            Name = building.Name,
-            Address = building.Address,
-            BuildingType = building.BuildingType,
-            Elevators = building.Elevators.Select(el => new ElevatorSummary
-            {
-                Id = el.Id,
-                NumberInProject = el.NumberInProject,
-                SerialNumber = el.SerialNumber
-            }).ToList()
-        });
+        return ServiceResult<BuildingWithElevatorsResponse>.Ok(MapToWithElevatorsResponse(building));
     }
 
-    public async Task<ServiceResult<bool>> CreateAsync(BuildingRequest request)
+    public async Task<ServiceResult<bool>> CreateAsync(BuildingRequest request, int companyId)
     {
-        var existing = await _repository.GetByNameAsync(request.Name);
+        var existing = await _repository.GetByNameAsync(request.Name, companyId);
         if (existing is not null)
             return ServiceResult<bool>.Error("The building name already exists.");
 
@@ -81,7 +57,8 @@ public class BuildingService : IBuildingService
         {
             Name = request.Name,
             Address = request.Address,
-            BuildingType = request.BuildingType
+            BuildingType = request.BuildingType,
+            CompanyId = companyId
         };
 
         await _repository.AddAsync(building);
@@ -90,9 +67,9 @@ public class BuildingService : IBuildingService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> UpdateAsync(int id, BuildingRequest request)
+    public async Task<ServiceResult<bool>> UpdateAsync(int id, BuildingRequest request, int companyId)
     {
-        var building = await _repository.GetByIdAsync(id);
+        var building = await _repository.GetWithElevatorsAsync(id, companyId);
         if (building is null)
             return ServiceResult<bool>.NotFound($"Building {id} not found.");
 
@@ -106,9 +83,9 @@ public class BuildingService : IBuildingService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> DeleteAsync(int id)
+    public async Task<ServiceResult<bool>> DeleteAsync(int id, int companyId)
     {
-        var building = await _repository.GetByIdAsync(id);
+        var building = await _repository.GetWithElevatorsAsync(id, companyId);
         if (building is null)
             return ServiceResult<bool>.NotFound($"Building {id} not found.");
 
@@ -117,4 +94,18 @@ public class BuildingService : IBuildingService
 
         return ServiceResult<bool>.Ok(true);
     }
+
+    private static BuildingWithElevatorsResponse MapToWithElevatorsResponse(Building building) => new()
+    {
+        Id = building.Id,
+        Name = building.Name,
+        Address = building.Address,
+        BuildingType = building.BuildingType,
+        Elevators = building.Elevators.Select(el => new ElevatorSummary
+        {
+            Id = el.Id,
+            NumberInProject = el.NumberInProject,
+            SerialNumber = el.SerialNumber
+        }).ToList()
+    };
 }

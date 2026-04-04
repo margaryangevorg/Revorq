@@ -80,6 +80,11 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.Property(b => b.BuildingType).HasConversion<int>();
             e.Property(b => b.Address).IsRequired().HasMaxLength(300);
             e.HasAlternateKey(b => b.Address);
+
+            e.HasOne(b => b.Company)
+             .WithMany(c => c.Buildings)
+             .HasForeignKey(b => b.CompanyId)
+             .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<Elevator>(e =>

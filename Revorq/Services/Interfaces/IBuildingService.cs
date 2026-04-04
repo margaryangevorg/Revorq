@@ -6,10 +6,10 @@ namespace Revorq.API.Services.Interfaces;
 
 public interface IBuildingService
 {
-    Task<IEnumerable<BuildingResponse>> GetAllAsync(BuildingType? type = null);
-    Task<ServiceResult<BuildingWithElevatorsResponse>> GetByIdAsync(int id);
-    Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name);
-    Task<ServiceResult<bool>> CreateAsync(BuildingRequest request);
-    Task<ServiceResult<bool>> UpdateAsync(int id, BuildingRequest request);
-    Task<ServiceResult<bool>> DeleteAsync(int id);
+    Task<IEnumerable<BuildingResponse>> GetAllAsync(int companyId, BuildingType? type = null);
+    Task<ServiceResult<BuildingWithElevatorsResponse>> GetByIdAsync(int id, int companyId);
+    Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name, int companyId);
+    Task<ServiceResult<bool>> CreateAsync(BuildingRequest request, int companyId);
+    Task<ServiceResult<bool>> UpdateAsync(int id, BuildingRequest request, int companyId);
+    Task<ServiceResult<bool>> DeleteAsync(int id, int companyId);
 }
