@@ -122,6 +122,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.HasOne(o => o.AssignedEngineer)
              .WithMany(u => u.AssignedOrders)
              .HasForeignKey(o => o.AssignedEngineerId)
+             .IsRequired(false)
              .OnDelete(DeleteBehavior.Restrict);
 
             e.HasIndex(o => new { o.AssignedEngineerId, o.ScheduledDate });

@@ -43,12 +43,11 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {
         var result = await _maintenanceService.CreateOrderAsync(request);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
-        return CreatedAtAction(nameof(GetById), new { id = result.Data }, result.Data);
+        return Ok();
     }
 
     [HttpGet("{id}")]
@@ -59,6 +58,16 @@ public class MaintenanceController : ControllerBase
         return Ok(result.Data);
     }
 
+    [HttpPut("{orderId}/assign")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> AssignOrder(int orderId, int engineerId)
+    {
+        var result = await _maintenanceService.AssignOrderAsync(orderId, engineerId);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+        return Ok();
+    }
+
     [HttpPost("{id}/report")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
     public async Task<IActionResult> CreateReport(int id, [FromBody] CreateReportRequest request)
@@ -66,7 +75,7 @@ public class MaintenanceController : ControllerBase
         var result = await _maintenanceService.CreateReportAsync(id, request);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete("{id}")]
@@ -75,6 +84,6 @@ public class MaintenanceController : ControllerBase
     {
         var result = await _maintenanceService.DeleteAsync(id);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
-        return NoContent();
+        return Ok();
     }
 }

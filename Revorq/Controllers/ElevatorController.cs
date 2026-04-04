@@ -57,7 +57,7 @@ public class ElevatorController : ControllerBase
         var result = await _elevatorService.UpdateAsync(id, request);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete("{id}")]
@@ -66,6 +66,6 @@ public class ElevatorController : ControllerBase
     {
         var result = await _elevatorService.DeleteAsync(id);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
-        return NoContent();
+        return Ok();
     }
 }

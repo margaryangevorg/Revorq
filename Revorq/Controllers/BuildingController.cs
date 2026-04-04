@@ -73,7 +73,7 @@ public class BuildingController : ControllerBase
 
         var result = await _buildingService.UpdateAsync(id, request, companyId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete("{id}")]
@@ -85,7 +85,7 @@ public class BuildingController : ControllerBase
 
         var result = await _buildingService.DeleteAsync(id, companyId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
-        return NoContent();
+        return Ok();
     }
 
     private int? GetCompanyId()

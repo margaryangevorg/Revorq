@@ -72,6 +72,23 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<MaintenanceOrderResponse>.Ok(MapToResponse(order));
     }
 
+    public async Task<ServiceResult<bool>> AssignOrderAsync(int orderId, int engineerId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+
+        if (order.Status == OrderStatus.Done)
+            return ServiceResult<bool>.Error("Cannot assign a completed order.");
+
+        order.AssignedEngineerId = engineerId;
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
     public async Task<ServiceResult<bool>> CreateReportAsync(int orderId, CreateReportRequest request)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);

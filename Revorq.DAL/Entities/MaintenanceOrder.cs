@@ -9,8 +9,8 @@ public class MaintenanceOrder
     public int ElevatorId { get; set; }
     public Elevator Elevator { get; set; } = null!;
 
-    public int AssignedEngineerId { get; set; }
-    public AppUser AssignedEngineer { get; set; } = null!;
+    public int? AssignedEngineerId { get; set; }
+    public AppUser? AssignedEngineer { get; set; }
 
     public MaintenanceType MaintenanceType { get; set; }
     public DateTime ScheduledDate { get; set; }
