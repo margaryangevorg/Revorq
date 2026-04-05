@@ -4,16 +4,24 @@ using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace Revorq.API.Services.Implementations;
 
 public class BuildingService : IBuildingService
 {
     private readonly IBuildingRepository _repository;
+    private readonly IUserBuildingAccessRepository _accessRepository;
+    private readonly UserManager<AppUser> _userManager;
 
-    public BuildingService(IBuildingRepository repository)
+    public BuildingService(
+        IBuildingRepository repository,
+        IUserBuildingAccessRepository accessRepository,
+        UserManager<AppUser> userManager)
     {
         _repository = repository;
+        _accessRepository = accessRepository;
+        _userManager = userManager;
     }
 
     public async Task<IEnumerable<BuildingResponse>> GetAllAsync(int companyId, BuildingType? type = null)
@@ -63,6 +71,14 @@ public class BuildingService : IBuildingService
 
         await _repository.AddAsync(building);
         await _repository.SaveChangesAsync();
+
+        var admins = (await _userManager.GetUsersInRoleAsync(nameof(Role.Admin)))
+            .Where(u => u.CompanyId == companyId);
+
+        foreach (var admin in admins)
+            await _accessRepository.GrantAsync(admin.Id, building.Id);
+
+        await _accessRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);
     }
