@@ -43,7 +43,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromForm] CreateOrderRequest request)
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {
         var result = await _maintenanceService.CreateOrderAsync(request);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
@@ -70,7 +70,7 @@ public class MaintenanceController : ControllerBase
 
     [HttpPost("{id}/report")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
-    public async Task<IActionResult> CreateReport(int id, [FromBody] CreateReportRequest request)
+    public async Task<IActionResult> CreateReport(int id, [FromForm] CreateReportRequest request)
     {
         var result = await _maintenanceService.CreateReportAsync(id, request);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);

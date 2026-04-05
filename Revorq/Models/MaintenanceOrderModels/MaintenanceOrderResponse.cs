@@ -14,6 +14,5 @@ public class MaintenanceOrderResponse
     public DateTime ScheduledDate { get; set; }
     public OrderStatus Status { get; set; }
     public string? ShortDescription { get; set; }
-    public string? ImagePath { get; set; }
     public MaintenanceReportResponse? Report { get; set; }
 }

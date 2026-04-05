@@ -14,4 +14,5 @@ public class MaintenanceReport
     public bool CleaningDone { get; set; }
 
     public string? ShortDescription { get; set; }
+    public string? ImagePath { get; set; }
 }
