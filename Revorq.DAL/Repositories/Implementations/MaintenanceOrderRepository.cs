@@ -10,25 +10,8 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
 {
     public MaintenanceOrderRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersByEngineerAsync(
-        int engineerId, int year, int month, OrderStatus? status)
-    {
-        return await _context.MaintenanceOrders
-            .Include(o => o.Elevator)
-                .ThenInclude(el => el.Building)
-            .Include(o => o.Report)
-            .Where(o => o.AssignedEngineerId == engineerId
-                     && o.ScheduledDate.Year == year
-                     && o.ScheduledDate.Month == month
-                     && (status == null || o.Status == status))
-            .OrderBy(o => o.Elevator.Building.Name)
-            .ThenBy(o => o.Elevator.NumberInProject)
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
-        int year, int month, OrderStatus? status, bool? isUnassigned)
+        int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned)
     {
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
@@ -37,6 +20,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .Include(o => o.Report)
             .Where(o => o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month
+                     && (engineerId == null || o.AssignedEngineerId == engineerId)
                      && (status == null || o.Status == status)
                      && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null)))
             .OrderBy(o => o.Elevator.Building.Name)
