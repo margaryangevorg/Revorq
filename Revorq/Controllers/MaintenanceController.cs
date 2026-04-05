@@ -3,6 +3,7 @@ using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Revorq.API.Controllers;
 
@@ -34,7 +35,10 @@ public class MaintenanceController : ControllerBase
         [FromQuery] OrderStatus? status,
         [FromQuery] bool? isUnassigned)
     {
-        return Ok(await _maintenanceService.GetMonthlyAsync(engineerId, year, month, status, isUnassigned));
+        var companyId = GetCompanyId();
+        if (companyId is null) return Unauthorized();
+
+        return Ok(await _maintenanceService.GetMonthlyAsync(companyId.Value, engineerId, year, month, status, isUnassigned));
     }
 
     [HttpGet("unscheduled")]
@@ -78,6 +82,12 @@ public class MaintenanceController : ControllerBase
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         return Ok();
+    }
+
+    private int? GetCompanyId()
+    {
+        var claim = User.FindFirstValue("CompanyId");
+        return int.TryParse(claim, out var id) ? id : null;
     }
 
     [HttpDelete("{id}")]

@@ -11,14 +11,15 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     public MaintenanceOrderRepository(AppDbContext context) : base(context) { }
 
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
-        int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned)
+        int companyId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned)
     {
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
             .Include(o => o.AssignedEngineer)
             .Include(o => o.Report)
-            .Where(o => o.ScheduledDate.Year == year
+            .Where(o => o.Elevator.Building.CompanyId == companyId
+                     && o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month
                      && (engineerId == null || o.AssignedEngineerId == engineerId)
                      && (status == null || o.Status == status)
