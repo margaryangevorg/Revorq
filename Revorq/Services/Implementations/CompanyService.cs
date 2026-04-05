@@ -14,6 +14,8 @@ public class CompanyService : ICompanyService
     private readonly ICompanyRepository _companyRepository;
     private readonly IInvitationTokenRepository _tokenRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IBuildingRepository _buildingRepository;
+    private readonly IUserBuildingAccessRepository _accessRepository;
     private readonly UserManager<AppUser> _userManager;
     private readonly IJwtService _jwtService;
 
@@ -21,12 +23,16 @@ public class CompanyService : ICompanyService
         ICompanyRepository companyRepository,
         IInvitationTokenRepository tokenRepository,
         IRefreshTokenRepository refreshTokenRepository,
+        IBuildingRepository buildingRepository,
+        IUserBuildingAccessRepository accessRepository,
         UserManager<AppUser> userManager,
         IJwtService jwtService)
     {
         _companyRepository = companyRepository;
         _tokenRepository = tokenRepository;
         _refreshTokenRepository = refreshTokenRepository;
+        _buildingRepository = buildingRepository;
+        _accessRepository = accessRepository;
         _userManager = userManager;
         _jwtService = jwtService;
     }
@@ -111,6 +117,14 @@ public class CompanyService : ICompanyService
             return ServiceResult<AuthResponse>.Error(string.Join("; ", result.Errors.Select(e => e.Description)));
 
         await _userManager.AddToRoleAsync(user, invite.Role.ToString());
+
+        if (invite.Role == Role.Admin)
+        {
+            var buildings = await _buildingRepository.GetAllAsync(invite.CompanyId, null);
+            foreach (var building in buildings)
+                await _accessRepository.GrantAsync(user.Id, building.Id);
+            await _accessRepository.SaveChangesAsync();
+        }
 
         invite.IsUsed = true;
         _tokenRepository.Update(invite);
