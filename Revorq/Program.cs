@@ -1,6 +1,7 @@
 using Revorq.API.Services.Implementations;
 using Revorq.API.Services.Interfaces;
 using Revorq.API.Validators;
+using Microsoft.Extensions.FileProviders;
 using Revorq.DAL.Context;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Repositories.Implementations;
@@ -120,6 +121,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

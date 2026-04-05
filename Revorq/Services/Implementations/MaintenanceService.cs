@@ -4,6 +4,8 @@ using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -12,15 +14,18 @@ public class MaintenanceService : IMaintenanceService
     private readonly IMaintenanceOrderRepository _orderRepository;
     private readonly IMaintenanceReportRepository _reportRepository;
     private readonly IRepository<Elevator> _elevatorRepository;
+    private readonly IWebHostEnvironment _env;
 
     public MaintenanceService(
         IMaintenanceOrderRepository orderRepository,
         IMaintenanceReportRepository reportRepository,
-        IRepository<Elevator> elevatorRepository)
+        IRepository<Elevator> elevatorRepository,
+        IWebHostEnvironment env)
     {
         _orderRepository = orderRepository;
         _reportRepository = reportRepository;
         _elevatorRepository = elevatorRepository;
+        _env = env;
     }
 
     public async Task<IEnumerable<MaintenanceOrderResponse>> GetOrdersUntilDateAsync(DateTime untilDate)
@@ -47,6 +52,24 @@ public class MaintenanceService : IMaintenanceService
         if (elevator is null)
             return ServiceResult<int>.Error($"Elevator {request.ElevatorId} not found.");
 
+        string? imagePath = null;
+        if (request.Image is not null)
+        {
+            var folder = Path.Combine(_env.ContentRootPath, "uploads", "orders");
+            Directory.CreateDirectory(folder);
+            var fileName = $"{Guid.NewGuid()}.jpg";
+            var filePath = Path.Combine(folder, fileName);
+
+            using var image = await Image.LoadAsync(request.Image.OpenReadStream());
+            image.Mutate(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(1024, 1024),
+                Mode = ResizeMode.Max
+            }));
+            await image.SaveAsJpegAsync(filePath);
+            imagePath = $"/uploads/orders/{fileName}";
+        }
+
         var order = new MaintenanceOrder
         {
             ElevatorId = request.ElevatorId,
@@ -54,6 +77,7 @@ public class MaintenanceService : IMaintenanceService
             MaintenanceType = request.MaintenanceType,
             ScheduledDate = request.ScheduledDate,
             ShortDescription = request.ShortDescription,
+            ImagePath = imagePath,
             Status = OrderStatus.Open
         };
 
@@ -145,6 +169,7 @@ public class MaintenanceService : IMaintenanceService
         ScheduledDate = o.ScheduledDate,
         Status = o.Status,
         ShortDescription = o.ShortDescription,
+        ImagePath = o.ImagePath,
         Report = o.Report is null ? null : new MaintenanceReportResponse
         {
             JobStartedDate = o.Report.JobStartedDate,
