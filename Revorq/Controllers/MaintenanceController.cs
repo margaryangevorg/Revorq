@@ -30,9 +30,10 @@ public class MaintenanceController : ControllerBase
     public async Task<IActionResult> GetMonthlyList(
         [FromQuery] int engineerId,
         [FromQuery] int year,
-        [FromQuery] int month)
+        [FromQuery] int month,
+        [FromQuery] OrderStatus? status)
     {
-        return Ok(await _maintenanceService.GetMonthlyListAsync(engineerId, year, month));
+        return Ok(await _maintenanceService.GetMonthlyListAsync(engineerId, year, month, status));
     }
 
     [HttpGet("unscheduled")]
