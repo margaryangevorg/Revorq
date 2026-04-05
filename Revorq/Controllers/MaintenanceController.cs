@@ -25,7 +25,7 @@ public class MaintenanceController : ControllerBase
         return Ok(await _maintenanceService.GetOrdersUntilDateAsync(untilDate));
     }
 
-    [HttpGet("monthly")]
+    [HttpGet("monthlyForEngineer")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
     public async Task<IActionResult> GetMonthlyList(
         [FromQuery] int engineerId,
@@ -34,6 +34,17 @@ public class MaintenanceController : ControllerBase
         [FromQuery] OrderStatus? status)
     {
         return Ok(await _maintenanceService.GetMonthlyListAsync(engineerId, year, month, status));
+    }
+
+    [HttpGet("monthly")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> GetMonthly(
+        [FromQuery] int year,
+        [FromQuery] int month,
+        [FromQuery] OrderStatus? status,
+        [FromQuery] bool? isUnassigned)
+    {
+        return Ok(await _maintenanceService.GetMonthlyAsync(year, month, status, isUnassigned));
     }
 
     [HttpGet("unscheduled")]

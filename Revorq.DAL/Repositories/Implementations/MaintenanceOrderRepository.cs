@@ -27,6 +27,24 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
+        int year, int month, OrderStatus? status, bool? isUnassigned)
+    {
+        return await _context.MaintenanceOrders
+            .Include(o => o.Elevator)
+                .ThenInclude(el => el.Building)
+            .Include(o => o.AssignedEngineer)
+            .Include(o => o.Report)
+            .Where(o => o.ScheduledDate.Year == year
+                     && o.ScheduledDate.Month == month
+                     && (status == null || o.Status == status)
+                     && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null)))
+            .OrderBy(o => o.Elevator.Building.Name)
+            .ThenBy(o => o.Elevator.NumberInProject)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<MaintenanceOrder>> GetOrdersUntilDateAsync(DateTime untilDate)
     {
         return await _context.MaintenanceOrders
