@@ -96,12 +96,9 @@ public class MaintenanceService : IMaintenanceService
 
     public async Task<ServiceResult<bool>> CreateReportAsync(int orderId, CreateReportRequest request)
     {
-        var order = await _orderRepository.GetByIdAsync(orderId);
+        var order = await _orderRepository.GetByIdWithReportAsync(orderId);
         if (order is null)
             return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
-
-        if (order.Status == OrderStatus.Done)
-            return ServiceResult<bool>.Error("A report already exists for this order.");
 
         string? imagePath = null;
         if (request.Image is not null)
@@ -121,22 +118,45 @@ public class MaintenanceService : IMaintenanceService
             imagePath = $"/uploads/orders/{fileName}";
         }
 
-        var report = new MaintenanceReport
+        if (order.Report is null)
         {
-            OrderId = orderId,
-            JobStartedDate = request.JobStartedDate,
-            CompletedDate = request.CompletedDate,
-            IssueDetected = request.IssueDetected,
-            VisualCheckDone = request.VisualCheckDone,
-            AdjustmentDone = request.AdjustmentDone,
-            CleaningDone = request.CleaningDone,
-            ShortDescription = request.ShortDescription,
-            ImagePath = imagePath
-        };
+            // First call: start the job
+            var report = new MaintenanceReport
+            {
+                OrderId = orderId,
+                JobStartedDate = request.JobStartedDate,
+                CompletedDate = request.CompletedDate,
+                IssueDetected = request.IssueDetected,
+                VisualCheckDone = request.VisualCheckDone,
+                AdjustmentDone = request.AdjustmentDone,
+                CleaningDone = request.CleaningDone,
+                ShortDescription = request.ShortDescription,
+                ImagePath = imagePath
+            };
 
-        order.Status = OrderStatus.Done;
+            order.Status = OrderStatus.InProgress;
 
-        await _reportRepository.AddAsync(report);
+            await _reportRepository.AddAsync(report);
+        }
+        else
+        {
+            // Second call: complete the job
+            var report = order.Report;
+            report.JobStartedDate = request.JobStartedDate;
+            report.CompletedDate = request.CompletedDate;
+            report.IssueDetected = request.IssueDetected;
+            report.VisualCheckDone = request.VisualCheckDone;
+            report.AdjustmentDone = request.AdjustmentDone;
+            report.CleaningDone = request.CleaningDone;
+            report.ShortDescription = request.ShortDescription;
+            if (imagePath is not null)
+                report.ImagePath = imagePath;
+
+            order.Status = OrderStatus.Done;
+
+            _reportRepository.Update(report);
+        }
+
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 

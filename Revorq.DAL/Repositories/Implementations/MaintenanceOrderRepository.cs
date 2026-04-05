@@ -10,6 +10,13 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
 {
     public MaintenanceOrderRepository(AppDbContext context) : base(context) { }
 
+    public async Task<MaintenanceOrder?> GetByIdWithReportAsync(int id)
+    {
+        return await _context.MaintenanceOrders
+            .Include(o => o.Report)
+            .FirstOrDefaultAsync(o => o.Id == id);
+    }
+
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
         int userId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned)
     {

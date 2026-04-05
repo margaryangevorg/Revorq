@@ -27,7 +27,6 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpGet("monthly")]
-    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
     public async Task<IActionResult> GetMonthly(
         [FromQuery] int? engineerId,
         [FromQuery] int year,
@@ -86,7 +85,7 @@ public class MaintenanceController : ControllerBase
 
     private int? GetUserId()
     {
-        var claim = User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(claim, out var id) ? id : null;
     }
 

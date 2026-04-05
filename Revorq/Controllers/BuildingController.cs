@@ -141,7 +141,7 @@ public class BuildingController : ControllerBase
 
     private int? GetUserId()
     {
-        var claim = User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(claim, out var id) ? id : null;
     }
 
