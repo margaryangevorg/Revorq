@@ -27,6 +27,8 @@ public class UserBuildingAccessRepository : IUserBuildingAccessRepository
     {
         return await _context.UserBuildingAccesses
             .Where(a => a.UserId == userId)
+            .Include(a => a.Building)
+                .ThenInclude(b => b.Elevators)
             .Select(a => a.Building)
             .AsNoTracking()
             .ToListAsync();

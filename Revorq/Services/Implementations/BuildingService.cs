@@ -24,17 +24,19 @@ public class BuildingService : IBuildingService
         _userManager = userManager;
     }
 
-    public async Task<IEnumerable<BuildingResponse>> GetAllAsync(int companyId, BuildingType? type = null)
+    public async Task<IEnumerable<BuildingResponse>> GetAllAsync(int userId, BuildingType? type = null)
     {
-        var buildings = await _repository.GetAllAsync(companyId, type);
-        return buildings.Select(b => new BuildingResponse
-        {
-            Id = b.Id,
-            Name = b.Name,
-            Address = b.Address,
-            BuildingType = b.BuildingType,
-            ElevatorCount = b.Elevators.Count
-        });
+        var buildings = await _accessRepository.GetBuildingsForUserAsync(userId);
+        return buildings
+            .Where(b => type == null || b.BuildingType == type)
+            .Select(b => new BuildingResponse
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Address = b.Address,
+                BuildingType = b.BuildingType,
+                ElevatorCount = b.Elevators.Count
+            });
     }
 
     public async Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name, int companyId)

@@ -6,7 +6,7 @@ namespace Revorq.API.Services.Interfaces;
 
 public interface IBuildingService
 {
-    Task<IEnumerable<BuildingResponse>> GetAllAsync(int companyId, BuildingType? type = null);
+    Task<IEnumerable<BuildingResponse>> GetAllAsync(int userId, BuildingType? type = null);
     Task<ServiceResult<BuildingWithElevatorsResponse>> GetByIdAsync(int id, int companyId);
     Task<ServiceResult<BuildingWithElevatorsResponse>> GetByNameAsync(string name, int companyId);
     Task<ServiceResult<bool>> CreateAsync(BuildingRequest request, int companyId);

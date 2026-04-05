@@ -24,10 +24,10 @@ public class BuildingController : ControllerBase
     [HttpGet("all")]
     public async Task<IActionResult> GetAll([FromQuery] BuildingType? type)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        return Ok(await _buildingService.GetAllAsync(companyId.Value, type));
+        return Ok(await _buildingService.GetAllAsync(userId.Value, type));
     }
 
     [HttpGet("byName/{name}")]
@@ -137,6 +137,12 @@ public class BuildingController : ControllerBase
         var result = await _accessService.GetBuildingsForUserAsync(userId, companyId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok(result.Data);
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+        return int.TryParse(claim, out var id) ? id : null;
     }
 
     private int? GetCompanyId()
