@@ -34,9 +34,9 @@ public class MaintenanceService : IMaintenanceService
         return orders.Select(MapToResponse);
     }
 
-    public async Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int companyId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned)
+    public async Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned)
     {
-        var orders = await _orderRepository.GetMonthlyOrdersAsync(companyId, engineerId, year, month, status, isUnassigned);
+        var orders = await _orderRepository.GetMonthlyOrdersAsync(userId, engineerId, year, month, status, isUnassigned);
         return orders.Select(MapToResponse);
     }
 

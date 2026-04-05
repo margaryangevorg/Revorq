@@ -35,10 +35,10 @@ public class MaintenanceController : ControllerBase
         [FromQuery] OrderStatus? status,
         [FromQuery] bool? isUnassigned)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        return Ok(await _maintenanceService.GetMonthlyAsync(companyId.Value, engineerId, year, month, status, isUnassigned));
+        return Ok(await _maintenanceService.GetMonthlyAsync(userId.Value, engineerId, year, month, status, isUnassigned));
     }
 
     [HttpGet("unscheduled")]
@@ -82,6 +82,12 @@ public class MaintenanceController : ControllerBase
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         return Ok();
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+        return int.TryParse(claim, out var id) ? id : null;
     }
 
     private int? GetCompanyId()
