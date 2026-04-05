@@ -16,6 +16,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<Elevator> Elevators => Set<Elevator>();
     public DbSet<MaintenanceOrder> MaintenanceOrders => Set<MaintenanceOrder>();
     public DbSet<MaintenanceReport> MaintenanceReports => Set<MaintenanceReport>();
+    public DbSet<UserBuildingAccess> UserBuildingAccesses => Set<UserBuildingAccess>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -126,6 +127,21 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .OnDelete(DeleteBehavior.Restrict);
 
             e.HasIndex(o => new { o.AssignedEngineerId, o.ScheduledDate });
+        });
+
+        builder.Entity<UserBuildingAccess>(e =>
+        {
+            e.HasKey(a => new { a.UserId, a.BuildingId });
+
+            e.HasOne(a => a.User)
+             .WithMany(u => u.BuildingAccesses)
+             .HasForeignKey(a => a.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(a => a.Building)
+             .WithMany(b => b.UserAccesses)
+             .HasForeignKey(a => a.BuildingId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<MaintenanceReport>(e =>

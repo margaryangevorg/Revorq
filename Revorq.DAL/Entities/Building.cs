@@ -13,4 +13,5 @@ public class Building
     public Company Company { get; set; } = null!;
 
     public ICollection<Elevator> Elevators { get; set; } = [];
+    public ICollection<UserBuildingAccess> UserAccesses { get; set; } = [];
 }

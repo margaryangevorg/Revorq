@@ -11,4 +11,5 @@ public class AppUser : IdentityUser<int>
     public Company Company { get; set; } = null!;
 
     public ICollection<MaintenanceOrder> AssignedOrders { get; set; } = [];
+    public ICollection<UserBuildingAccess> BuildingAccesses { get; set; } = [];
 }

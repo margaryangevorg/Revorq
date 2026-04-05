@@ -92,6 +92,7 @@ builder.Services.AddScoped<IBuildingRepository, BuildingRepository>();
 builder.Services.AddScoped<IElevatorRepository, ElevatorRepository>();
 builder.Services.AddScoped<IMaintenanceOrderRepository, MaintenanceOrderRepository>();
 builder.Services.AddScoped<IMaintenanceReportRepository, MaintenanceReportRepository>();
+builder.Services.AddScoped<IUserBuildingAccessRepository, UserBuildingAccessRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IInvitationTokenRepository, InvitationTokenRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
@@ -105,6 +106,7 @@ builder.Services.AddScoped<IElevatorService, ElevatorService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBuildingAccessService, BuildingAccessService>();
 
 var app = builder.Build();
 
