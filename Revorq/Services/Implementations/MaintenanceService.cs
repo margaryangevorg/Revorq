@@ -14,18 +14,15 @@ public class MaintenanceService : IMaintenanceService
     private readonly IMaintenanceOrderRepository _orderRepository;
     private readonly IMaintenanceReportRepository _reportRepository;
     private readonly IRepository<Elevator> _elevatorRepository;
-    private readonly IWebHostEnvironment _env;
 
     public MaintenanceService(
         IMaintenanceOrderRepository orderRepository,
         IMaintenanceReportRepository reportRepository,
-        IRepository<Elevator> elevatorRepository,
-        IWebHostEnvironment env)
+        IRepository<Elevator> elevatorRepository)
     {
         _orderRepository = orderRepository;
         _reportRepository = reportRepository;
         _elevatorRepository = elevatorRepository;
-        _env = env;
     }
 
     public async Task<IEnumerable<MaintenanceOrderResponse>> GetOrdersUntilDateAsync(DateTime untilDate)
@@ -103,22 +100,18 @@ public class MaintenanceService : IMaintenanceService
         if (order.Status == OrderStatus.Done)
             return ServiceResult<bool>.Error("Order is already completed.");
 
-        string? imagePath = null;
+        byte[]? imageData = null;
         if (request.Image is not null)
         {
-            var folder = Path.Combine(_env.ContentRootPath, "uploads", "orders");
-            Directory.CreateDirectory(folder);
-            var fileName = $"{Guid.NewGuid()}.jpg";
-            var filePath = Path.Combine(folder, fileName);
-
             using var image = await Image.LoadAsync(request.Image.OpenReadStream());
             image.Mutate(x => x.Resize(new ResizeOptions
             {
                 Size = new Size(1024, 1024),
                 Mode = ResizeMode.Max
             }));
-            await image.SaveAsJpegAsync(filePath);
-            imagePath = $"/uploads/orders/{fileName}";
+            using var ms = new MemoryStream();
+            await image.SaveAsJpegAsync(ms);
+            imageData = ms.ToArray();
         }
 
         if (order.Report is null)
@@ -133,7 +126,7 @@ public class MaintenanceService : IMaintenanceService
                 AdjustmentDone = request.AdjustmentDone,
                 CleaningDone = request.CleaningDone,
                 ShortDescription = request.ShortDescription,
-                ImagePath = imagePath
+                ImageData = imageData
             };
 
             await _reportRepository.AddAsync(report);
@@ -148,8 +141,8 @@ public class MaintenanceService : IMaintenanceService
             report.AdjustmentDone = request.AdjustmentDone;
             report.CleaningDone = request.CleaningDone;
             report.ShortDescription = request.ShortDescription;
-            if (imagePath is not null)
-                report.ImagePath = imagePath;
+            if (imageData is not null)
+                report.ImageData = imageData;
 
             _reportRepository.Update(report);
         }
@@ -197,7 +190,7 @@ public class MaintenanceService : IMaintenanceService
             AdjustmentDone = o.Report.AdjustmentDone,
             CleaningDone = o.Report.CleaningDone,
             ShortDescription = o.Report.ShortDescription,
-            ImagePath = o.Report.ImagePath
+            ImageBase64 = o.Report.ImageData is null ? null : Convert.ToBase64String(o.Report.ImageData)
         }
     };
 }
