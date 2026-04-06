@@ -12,4 +12,5 @@ public interface ICompanyService
     Task<ServiceResult<bool>> ApproveCompanyAsync(int id);
     Task<ServiceResult<bool>> RejectCompanyAsync(int id);
     Task<ServiceResult<CompanyResponse>> GetCompanyAsync(int id);
+    Task<ServiceResult<bool>> UpdateLogoAsync(int companyId, IFormFile logo);
 }

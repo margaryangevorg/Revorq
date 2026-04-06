@@ -6,6 +6,8 @@ using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -224,6 +226,28 @@ public class CompanyService : ICompanyService
             RegisteredAt = company.RegisteredAt,
             MemberCount = company.Members.Count
         });
+    }
+
+    public async Task<ServiceResult<bool>> UpdateLogoAsync(int companyId, IFormFile logo)
+    {
+        var company = await _companyRepository.GetByIdAsync(companyId);
+        if (company is null)
+            return ServiceResult<bool>.NotFound($"Company {companyId} not found.");
+
+        using var image = await Image.LoadAsync(logo.OpenReadStream());
+        image.Mutate(x => x.Resize(new ResizeOptions
+        {
+            Size = new Size(512, 512),
+            Mode = ResizeMode.Max
+        }));
+        using var ms = new MemoryStream();
+        await image.SaveAsJpegAsync(ms);
+
+        company.LogoData = ms.ToArray();
+        _companyRepository.Update(company);
+        await _companyRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
     }
 
     private static (string firstName, string lastName) SplitFullName(string fullName)

@@ -38,7 +38,8 @@ public class UserService : IUserService
             Phone = user.PhoneNumber,
             Role = roles.FirstOrDefault() ?? string.Empty,
             CompanyId = user.CompanyId,
-            CompanyName = user.Company.Name
+            CompanyName = user.Company.Name,
+            CompanyLogoBase64 = user.Company.LogoData is null ? null : Convert.ToBase64String(user.Company.LogoData)
         });
     }
 
@@ -71,5 +72,31 @@ public class UserService : IUserService
         }
 
         return ServiceResult<IEnumerable<UserResponse>>.Ok(responses);
+    }
+
+    public async Task<ServiceResult<bool>> EditProfileAsync(int userId, EditProfileRequest request)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        if (!string.Equals(user.UserName, request.Username, StringComparison.OrdinalIgnoreCase))
+        {
+            var existing = await _userManager.FindByNameAsync(request.Username);
+            if (existing is not null)
+                return ServiceResult<bool>.Error("Username is already taken.");
+
+            user.UserName = request.Username;
+        }
+
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.PhoneNumber = request.Phone;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return ServiceResult<bool>.Error(string.Join("; ", result.Errors.Select(e => e.Description)));
+
+        return ServiceResult<bool>.Ok(true);
     }
 }

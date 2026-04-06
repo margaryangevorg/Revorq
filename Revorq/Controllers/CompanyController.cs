@@ -113,6 +113,21 @@ public class CompanyController : ControllerBase
         return Ok(new { message = "Company rejected." });
     }
 
+    [HttpPut("logo")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    public async Task<IActionResult> UpdateLogo(IFormFile logo)
+    {
+        var companyId = GetCompanyId();
+        if (companyId is null)
+            return BadRequest("Company not found in token.");
+
+        var result = await _companyService.UpdateLogoAsync(companyId.Value, logo);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+
+        return Ok();
+    }
+
     private int? GetCompanyId()
     {
         var claim = User.FindFirstValue("CompanyId");

@@ -1,3 +1,4 @@
+using Revorq.API.Models.AuthModels;
 using Revorq.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,19 @@ public class UserController : ControllerBase
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
 
         return Ok(result.Data);
+    }
+
+    [HttpPut("profile")]
+    public async Task<IActionResult> EditProfile([FromBody] EditProfileRequest request)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+
+        var result = await _userService.EditProfileAsync(userId, request);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+
+        return Ok();
     }
 
 }
