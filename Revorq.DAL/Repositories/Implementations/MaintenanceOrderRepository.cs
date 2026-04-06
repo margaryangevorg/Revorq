@@ -13,6 +13,9 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     public async Task<MaintenanceOrder?> GetByIdWithReportAsync(int id)
     {
         return await _context.MaintenanceOrders
+            .Include(o => o.Elevator)
+                .ThenInclude(el => el.Building)
+            .Include(o => o.AssignedEngineer)
             .Include(o => o.Report)
             .FirstOrDefaultAsync(o => o.Id == id);
     }

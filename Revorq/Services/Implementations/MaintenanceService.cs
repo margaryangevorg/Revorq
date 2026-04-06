@@ -70,7 +70,7 @@ public class MaintenanceService : IMaintenanceService
 
     public async Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(int id)
     {
-        var order = await _orderRepository.GetByIdAsync(id);
+        var order = await _orderRepository.GetByIdWithReportAsync(id);
         if (order is null)
             return ServiceResult<MaintenanceOrderResponse>.NotFound($"Order {id} not found.");
 
