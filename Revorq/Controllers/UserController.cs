@@ -43,4 +43,17 @@ public class UserController : ControllerBase
         return Ok();
     }
 
+    [HttpPut("password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+
+        var result = await _userService.ChangePasswordAsync(userId, request);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+
+        return Ok();
+    }
+
 }

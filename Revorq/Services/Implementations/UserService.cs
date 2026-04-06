@@ -99,4 +99,20 @@ public class UserService : IUserService
 
         return ServiceResult<bool>.Ok(true);
     }
+
+    public async Task<ServiceResult<bool>> ChangePasswordAsync(int userId, ChangePasswordRequest request)
+    {
+        if (request.NewPassword != request.ConfirmedPassword)
+            return ServiceResult<bool>.Error("Passwords do not match.");
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+            return ServiceResult<bool>.Error(string.Join("; ", result.Errors.Select(e => e.Description)));
+
+        return ServiceResult<bool>.Ok(true);
+    }
 }
