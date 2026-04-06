@@ -154,7 +154,8 @@ public class MaintenanceService : IMaintenanceService
             _reportRepository.Update(report);
         }
 
-        order.Status = request.Status;
+        if (request.Status.HasValue)
+            order.Status = request.Status.Value;
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 
