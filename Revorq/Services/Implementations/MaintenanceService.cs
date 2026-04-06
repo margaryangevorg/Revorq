@@ -100,6 +100,9 @@ public class MaintenanceService : IMaintenanceService
         if (order is null)
             return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
 
+        if (order.Status == OrderStatus.Done)
+            return ServiceResult<bool>.Error("Order is already completed.");
+
         string? imagePath = null;
         if (request.Image is not null)
         {
@@ -120,7 +123,6 @@ public class MaintenanceService : IMaintenanceService
 
         if (order.Report is null)
         {
-            // First call: start the job
             var report = new MaintenanceReport
             {
                 OrderId = orderId,
@@ -134,13 +136,10 @@ public class MaintenanceService : IMaintenanceService
                 ImagePath = imagePath
             };
 
-            order.Status = OrderStatus.InProgress;
-
             await _reportRepository.AddAsync(report);
         }
         else
         {
-            // Second call: complete the job
             var report = order.Report;
             report.JobStartedDate = request.JobStartedDate;
             report.CompletedDate = request.CompletedDate;
@@ -152,11 +151,10 @@ public class MaintenanceService : IMaintenanceService
             if (imagePath is not null)
                 report.ImagePath = imagePath;
 
-            order.Status = OrderStatus.Done;
-
             _reportRepository.Update(report);
         }
 
+        order.Status = request.Status;
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 
