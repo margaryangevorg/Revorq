@@ -173,6 +173,7 @@ public class MaintenanceService : IMaintenanceService
         ElevatorId = o.ElevatorId,
         ElevatorNumberInProject = o.Elevator?.NumberInProject ?? string.Empty,
         BuildingName = o.Elevator?.Building?.Name ?? string.Empty,
+        BuildingAddress = o.Elevator?.Building?.Address ?? string.Empty,
         AssignedEngineerId = o.AssignedEngineerId,
         AssignedEngineerName = o.AssignedEngineer is null
             ? string.Empty

@@ -8,6 +8,7 @@ public class MaintenanceOrderResponse
     public int ElevatorId { get; set; }
     public string ElevatorNumberInProject { get; set; } = string.Empty;
     public string BuildingName { get; set; } = string.Empty;
+    public string BuildingAddress { get; set; } = string.Empty;
     public int? AssignedEngineerId { get; set; }
     public string? AssignedEngineerName { get; set; }
     public string MaintenanceType { get; set; } = string.Empty;
