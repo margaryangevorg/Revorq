@@ -7,7 +7,7 @@ namespace Revorq.API.Services.Interfaces;
 public interface IMaintenanceService
 {
     Task<IEnumerable<MaintenanceOrderResponse>> GetOrdersUntilDateAsync(DateTime untilDate);
-    Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned);
+    Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled);
     Task<IEnumerable<MaintenanceOrderResponse>> GetUnscheduledAsync();
     Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request);
     Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(int id);

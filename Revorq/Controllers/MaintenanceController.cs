@@ -32,12 +32,13 @@ public class MaintenanceController : ControllerBase
         [FromQuery] int year,
         [FromQuery] int month,
         [FromQuery] OrderStatus? status,
-        [FromQuery] bool? isUnassigned)
+        [FromQuery] bool? isUnassigned,
+        [FromQuery] bool? isScheduled)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        return Ok(await _maintenanceService.GetMonthlyAsync(userId.Value, engineerId, year, month, status, isUnassigned));
+        return Ok(await _maintenanceService.GetMonthlyAsync(userId.Value, engineerId, year, month, status, isUnassigned, isScheduled));
     }
 
     [HttpGet("unscheduled")]

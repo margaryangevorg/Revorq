@@ -21,7 +21,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     }
 
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
-        int userId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned)
+        int userId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
     {
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
@@ -33,7 +33,8 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
                      && o.ScheduledDate.Month == month
                      && (engineerId == null || o.AssignedEngineerId == engineerId)
                      && (status == null || o.Status == status)
-                     && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null)))
+                     && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null))
+                     && (isScheduled == null || (isScheduled == true ? o.MaintenanceType == MaintenanceType.Scheduled : o.MaintenanceType == MaintenanceType.Unscheduled)))
             .OrderBy(o => o.Elevator.Building.Name)
             .ThenBy(o => o.Elevator.NumberInProject)
             .AsNoTracking()
