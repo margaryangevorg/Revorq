@@ -59,7 +59,9 @@ public class MaintenanceController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _maintenanceService.GetByIdAsync(id);
+
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
+
         return Ok(result.Data);
     }
 
