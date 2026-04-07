@@ -45,16 +45,18 @@ public class BuildingAccessService : IBuildingAccessService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> RevokeAsync(int buildingId, int userId, int companyId)
+    public async Task<ServiceResult<bool>> RevokeAsync(int userId, List<int> buildingIds, int companyId)
     {
-        var building = await _buildingRepository.GetByIdAsync(buildingId);
-        if (building is null || building.CompanyId != companyId)
-            return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
+        foreach (var buildingId in buildingIds)
+        {
+            var building = await _buildingRepository.GetByIdAsync(buildingId);
+            if (building is null || building.CompanyId != companyId)
+                return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
 
-        if (!await _accessRepository.ExistsAsync(userId, buildingId))
-            return ServiceResult<bool>.NotFound("Access record not found.");
+            if (await _accessRepository.ExistsAsync(userId, buildingId))
+                await _accessRepository.RevokeAsync(userId, buildingId);
+        }
 
-        await _accessRepository.RevokeAsync(userId, buildingId);
         await _accessRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);

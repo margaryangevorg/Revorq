@@ -103,14 +103,14 @@ public class BuildingController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("{buildingId}/access/{userId}")]
+    [HttpDelete("access/{userId}")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> RevokeAccess(int buildingId, int userId)
+    public async Task<IActionResult> RevokeAccess(int userId, [FromBody] List<int> buildingIds)
     {
         var companyId = GetCompanyId();
         if (companyId is null) return Unauthorized();
 
-        var result = await _accessService.RevokeAsync(buildingId, userId, companyId.Value);
+        var result = await _accessService.RevokeAsync(userId, buildingIds, companyId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok();
     }
