@@ -21,15 +21,14 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     }
 
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
-        int userId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
+        int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
     {
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
             .Include(o => o.AssignedEngineer)
             .Include(o => o.Report)
-            .Where(o => _context.UserBuildingAccesses.Any(a => a.UserId == userId && a.BuildingId == o.Elevator.BuildingId)
-                     && o.ScheduledDate.Year == year
+            .Where(o => o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month
                      && (engineerId == null || o.AssignedEngineerId == engineerId)
                      && (status == null || o.Status == status)
