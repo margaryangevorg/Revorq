@@ -25,20 +25,14 @@ public class ElevatorService : IElevatorService
 
     public async Task<IEnumerable<ElevatorResponse>> GetAllAsync(int userId)
     {
-        var companyId = await GetCompanyIdAsync(userId);
-        if (companyId is null) return [];
-
-        var elevators = await _elevatorRepository.GetAllByCompanyAsync(companyId.Value);
-        return elevators.Select(el => MapToResponse(el));
+        var elevators = await _elevatorRepository.GetAllByUserAsync(userId);
+        return elevators.Select(MapToResponse);
     }
 
     public async Task<IEnumerable<ElevatorResponse>> GetByBuildingNameAsync(string buildingName, int userId)
     {
-        var companyId = await GetCompanyIdAsync(userId);
-        if (companyId is null) return [];
-
-        var elevators = await _elevatorRepository.GetByBuildingNameAsync(buildingName, companyId.Value);
-        return elevators.Select(el => MapToResponse(el));
+        var elevators = await _elevatorRepository.GetByBuildingNameByUserAsync(buildingName, userId);
+        return elevators.Select(MapToResponse);
     }
 
     public async Task<ServiceResult<ElevatorResponse>> GetByIdAsync(int id, int userId)

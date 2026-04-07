@@ -30,20 +30,54 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public async Task<IEnumerable<Elevator>> GetAllByCompanyAsync(int companyId)
+    public async Task<IEnumerable<Elevator>> GetAllByUserAsync(int userId)
     {
-        return await _context.Elevators
-            .Include(e => e.Building)
-            .Where(e => e.Building.CompanyId == companyId)
+        return await _context.UserBuildingAccesses
+            .Where(a => a.UserId == userId)
+            .Include(a => a.Building)
+                .ThenInclude(b => b.Elevators)
+            .SelectMany(a => a.Building.Elevators.Select(e => new Elevator
+            {
+                Id = e.Id,
+                NumberInProject = e.NumberInProject,
+                SerialNumber = e.SerialNumber,
+                Model = e.Model,
+                ProductionCountry = e.ProductionCountry,
+                CustomerFullName = e.CustomerFullName,
+                CustomerPhoneNumber = e.CustomerPhoneNumber,
+                WarrantyType = e.WarrantyType,
+                WarrantyDate = e.WarrantyDate,
+                Priority = e.Priority,
+                CreationDate = e.CreationDate,
+                BuildingId = e.BuildingId,
+                Building = a.Building
+            }))
             .AsNoTracking()
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Elevator>> GetByBuildingNameAsync(string buildingName, int companyId)
+    public async Task<IEnumerable<Elevator>> GetByBuildingNameByUserAsync(string buildingName, int userId)
     {
-        return await _context.Elevators
-            .Include(e => e.Building)
-            .Where(e => e.Building.Name.ToLower() == buildingName.ToLower() && e.Building.CompanyId == companyId)
+        return await _context.UserBuildingAccesses
+            .Where(a => a.UserId == userId && a.Building.Name.ToLower() == buildingName.ToLower())
+            .Include(a => a.Building)
+                .ThenInclude(b => b.Elevators)
+            .SelectMany(a => a.Building.Elevators.Select(e => new Elevator
+            {
+                Id = e.Id,
+                NumberInProject = e.NumberInProject,
+                SerialNumber = e.SerialNumber,
+                Model = e.Model,
+                ProductionCountry = e.ProductionCountry,
+                CustomerFullName = e.CustomerFullName,
+                CustomerPhoneNumber = e.CustomerPhoneNumber,
+                WarrantyType = e.WarrantyType,
+                WarrantyDate = e.WarrantyDate,
+                Priority = e.Priority,
+                CreationDate = e.CreationDate,
+                BuildingId = e.BuildingId,
+                Building = a.Building
+            }))
             .AsNoTracking()
             .ToListAsync();
     }
