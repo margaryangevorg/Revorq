@@ -24,20 +24,22 @@ public class BuildingAccessService : IBuildingAccessService
         _userManager = userManager;
     }
 
-    public async Task<ServiceResult<bool>> GrantAsync(int buildingId, int userId, int companyId)
+    public async Task<ServiceResult<bool>> GrantAsync(int userId, List<int> buildingIds, int companyId)
     {
-        var building = await _buildingRepository.GetByIdAsync(buildingId);
-        if (building is null || building.CompanyId != companyId)
-            return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
-
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null || user.CompanyId != companyId)
             return ServiceResult<bool>.NotFound($"User {userId} not found.");
 
-        if (await _accessRepository.ExistsAsync(userId, buildingId))
-            return ServiceResult<bool>.Error("User already has access to this building.");
+        foreach (var buildingId in buildingIds)
+        {
+            var building = await _buildingRepository.GetByIdAsync(buildingId);
+            if (building is null || building.CompanyId != companyId)
+                return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
 
-        await _accessRepository.GrantAsync(userId, buildingId);
+            if (!await _accessRepository.ExistsAsync(userId, buildingId))
+                await _accessRepository.GrantAsync(userId, buildingId);
+        }
+
         await _accessRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);

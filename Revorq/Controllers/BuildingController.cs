@@ -90,14 +90,14 @@ public class BuildingController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("{buildingId}/access/{userId}")]
+    [HttpPost("access/{userId}")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> GrantAccess(int buildingId, int userId)
+    public async Task<IActionResult> GrantAccess(int userId, [FromBody] List<int> buildingIds)
     {
         var companyId = GetCompanyId();
         if (companyId is null) return Unauthorized();
 
-        var result = await _accessService.GrantAsync(buildingId, userId, companyId.Value);
+        var result = await _accessService.GrantAsync(userId, buildingIds, companyId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         return Ok();
