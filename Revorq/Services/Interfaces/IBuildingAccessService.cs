@@ -6,8 +6,8 @@ namespace Revorq.API.Services.Interfaces;
 
 public interface IBuildingAccessService
 {
-    Task<ServiceResult<bool>> GrantAsync(int userId, List<int> buildingIds, int companyId);
-    Task<ServiceResult<bool>> RevokeAsync(int userId, List<int> buildingIds, int companyId);
-    Task<ServiceResult<IEnumerable<UserResponse>>> GetUsersWithAccessAsync(int buildingId, int companyId);
-    Task<ServiceResult<IEnumerable<BuildingResponse>>> GetBuildingsForUserAsync(int userId, int companyId);
+    Task<ServiceResult<bool>> GrantAsync(int targetUserId, List<int> buildingIds, int requestingUserId);
+    Task<ServiceResult<bool>> RevokeAsync(int targetUserId, List<int> buildingIds, int requestingUserId);
+    Task<ServiceResult<IEnumerable<UserResponse>>> GetUsersWithAccessAsync(int buildingId, int requestingUserId);
+    Task<ServiceResult<IEnumerable<BuildingResponse>>> GetBuildingsForUserAsync(int targetUserId, int requestingUserId);
 }

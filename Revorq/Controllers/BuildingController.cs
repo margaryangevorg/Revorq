@@ -9,6 +9,7 @@ namespace Revorq.API.Controllers;
 
 [ApiController]
 [Route("api/building")]
+[Authorize]
 public class BuildingController : ControllerBase
 {
     private readonly IBuildingService _buildingService;
@@ -32,10 +33,10 @@ public class BuildingController : ControllerBase
     [HttpGet("byName/{name}")]
     public async Task<IActionResult> GetByName(string name)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _buildingService.GetByNameAsync(name, companyId.Value);
+        var result = await _buildingService.GetByNameAsync(name, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok(result.Data);
     }
@@ -43,10 +44,10 @@ public class BuildingController : ControllerBase
     [HttpGet("byId/{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _buildingService.GetByIdAsync(id, companyId.Value);
+        var result = await _buildingService.GetByIdAsync(id, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok(result.Data);
     }
@@ -55,10 +56,10 @@ public class BuildingController : ControllerBase
     [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Create([FromBody] BuildingRequest request)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _buildingService.CreateAsync(request, companyId.Value);
+        var result = await _buildingService.CreateAsync(request, userId.Value);
         if (!result.IsSuccess)
             return BadRequest(result.ErrorMessage);
 
@@ -69,10 +70,10 @@ public class BuildingController : ControllerBase
     [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Update(int id, [FromBody] BuildingRequest request)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _buildingService.UpdateAsync(id, request, companyId.Value);
+        var result = await _buildingService.UpdateAsync(id, request, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok();
     }
@@ -81,59 +82,57 @@ public class BuildingController : ControllerBase
     [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Delete(int id)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _buildingService.DeleteAsync(id, companyId.Value);
+        var result = await _buildingService.DeleteAsync(id, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok();
     }
 
-    [HttpPost("access/{userId}")]
+    [HttpPost("access/{targetUserId}")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> GrantAccess(int userId, [FromBody] List<int> buildingIds)
+    public async Task<IActionResult> GrantAccess(int targetUserId, [FromBody] List<int> buildingIds)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _accessService.GrantAsync(userId, buildingIds, companyId.Value);
+        var result = await _accessService.GrantAsync(targetUserId, buildingIds, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         return Ok();
     }
 
-    [HttpDelete("access/{userId}")]
+    [HttpDelete("access/{targetUserId}")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> RevokeAccess(int userId, [FromBody] List<int> buildingIds)
+    public async Task<IActionResult> RevokeAccess(int targetUserId, [FromBody] List<int> buildingIds)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _accessService.RevokeAsync(userId, buildingIds, companyId.Value);
+        var result = await _accessService.RevokeAsync(targetUserId, buildingIds, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok();
     }
 
     [HttpGet("{buildingId}/access")]
-    [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> GetUsersWithAccess(int buildingId)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _accessService.GetUsersWithAccessAsync(buildingId, companyId.Value);
+        var result = await _accessService.GetUsersWithAccessAsync(buildingId, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok(result.Data);
     }
 
-    [HttpGet("access/user/{userId}")]
-    [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> GetBuildingsForUser(int userId)
+    [HttpGet("access/user/{targetUserId}")]
+    public async Task<IActionResult> GetBuildingsForUser(int targetUserId)
     {
-        var companyId = GetCompanyId();
-        if (companyId is null) return Unauthorized();
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
 
-        var result = await _accessService.GetBuildingsForUserAsync(userId, companyId.Value);
+        var result = await _accessService.GetBuildingsForUserAsync(targetUserId, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok(result.Data);
     }
@@ -141,12 +140,6 @@ public class BuildingController : ControllerBase
     private int? GetUserId()
     {
         var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(claim, out var id) ? id : null;
-    }
-
-    private int? GetCompanyId()
-    {
-        var claim = User.FindFirstValue("CompanyId");
         return int.TryParse(claim, out var id) ? id : null;
     }
 }

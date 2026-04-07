@@ -24,20 +24,24 @@ public class BuildingAccessService : IBuildingAccessService
         _userManager = userManager;
     }
 
-    public async Task<ServiceResult<bool>> GrantAsync(int userId, List<int> buildingIds, int companyId)
+    public async Task<ServiceResult<bool>> GrantAsync(int targetUserId, List<int> buildingIds, int requestingUserId)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null || user.CompanyId != companyId)
-            return ServiceResult<bool>.NotFound($"User {userId} not found.");
+        var companyId = await GetCompanyIdAsync(requestingUserId);
+        if (companyId is null)
+            return ServiceResult<bool>.NotFound("Requesting user not found.");
+
+        var targetUser = await _userManager.FindByIdAsync(targetUserId.ToString());
+        if (targetUser is null || targetUser.CompanyId != companyId.Value)
+            return ServiceResult<bool>.NotFound($"User {targetUserId} not found.");
 
         foreach (var buildingId in buildingIds)
         {
             var building = await _buildingRepository.GetByIdAsync(buildingId);
-            if (building is null || building.CompanyId != companyId)
+            if (building is null || building.CompanyId != companyId.Value)
                 return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
 
-            if (!await _accessRepository.ExistsAsync(userId, buildingId))
-                await _accessRepository.GrantAsync(userId, buildingId);
+            if (!await _accessRepository.ExistsAsync(targetUserId, buildingId))
+                await _accessRepository.GrantAsync(targetUserId, buildingId);
         }
 
         await _accessRepository.SaveChangesAsync();
@@ -45,16 +49,20 @@ public class BuildingAccessService : IBuildingAccessService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> RevokeAsync(int userId, List<int> buildingIds, int companyId)
+    public async Task<ServiceResult<bool>> RevokeAsync(int targetUserId, List<int> buildingIds, int requestingUserId)
     {
+        var companyId = await GetCompanyIdAsync(requestingUserId);
+        if (companyId is null)
+            return ServiceResult<bool>.NotFound("Requesting user not found.");
+
         foreach (var buildingId in buildingIds)
         {
             var building = await _buildingRepository.GetByIdAsync(buildingId);
-            if (building is null || building.CompanyId != companyId)
+            if (building is null || building.CompanyId != companyId.Value)
                 return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
 
-            if (await _accessRepository.ExistsAsync(userId, buildingId))
-                await _accessRepository.RevokeAsync(userId, buildingId);
+            if (await _accessRepository.ExistsAsync(targetUserId, buildingId))
+                await _accessRepository.RevokeAsync(targetUserId, buildingId);
         }
 
         await _accessRepository.SaveChangesAsync();
@@ -62,10 +70,14 @@ public class BuildingAccessService : IBuildingAccessService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<IEnumerable<UserResponse>>> GetUsersWithAccessAsync(int buildingId, int companyId)
+    public async Task<ServiceResult<IEnumerable<UserResponse>>> GetUsersWithAccessAsync(int buildingId, int requestingUserId)
     {
+        var companyId = await GetCompanyIdAsync(requestingUserId);
+        if (companyId is null)
+            return ServiceResult<IEnumerable<UserResponse>>.NotFound("Requesting user not found.");
+
         var building = await _buildingRepository.GetByIdAsync(buildingId);
-        if (building is null || building.CompanyId != companyId)
+        if (building is null || building.CompanyId != companyId.Value)
             return ServiceResult<IEnumerable<UserResponse>>.NotFound($"Building {buildingId} not found.");
 
         var users = await _accessRepository.GetUsersWithAccessAsync(buildingId);
@@ -89,13 +101,17 @@ public class BuildingAccessService : IBuildingAccessService
         return ServiceResult<IEnumerable<UserResponse>>.Ok(responses);
     }
 
-    public async Task<ServiceResult<IEnumerable<BuildingResponse>>> GetBuildingsForUserAsync(int userId, int companyId)
+    public async Task<ServiceResult<IEnumerable<BuildingResponse>>> GetBuildingsForUserAsync(int targetUserId, int requestingUserId)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null || user.CompanyId != companyId)
-            return ServiceResult<IEnumerable<BuildingResponse>>.NotFound($"User {userId} not found.");
+        var companyId = await GetCompanyIdAsync(requestingUserId);
+        if (companyId is null)
+            return ServiceResult<IEnumerable<BuildingResponse>>.NotFound("Requesting user not found.");
 
-        var buildings = await _accessRepository.GetBuildingsForUserAsync(userId);
+        var targetUser = await _userManager.FindByIdAsync(targetUserId.ToString());
+        if (targetUser is null || targetUser.CompanyId != companyId.Value)
+            return ServiceResult<IEnumerable<BuildingResponse>>.NotFound($"User {targetUserId} not found.");
+
+        var buildings = await _accessRepository.GetBuildingsForUserAsync(targetUserId);
 
         var responses = buildings.Select(b => new BuildingResponse
         {
@@ -107,5 +123,11 @@ public class BuildingAccessService : IBuildingAccessService
         });
 
         return ServiceResult<IEnumerable<BuildingResponse>>.Ok(responses);
+    }
+
+    private async Task<int?> GetCompanyIdAsync(int userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        return user?.CompanyId;
     }
 }

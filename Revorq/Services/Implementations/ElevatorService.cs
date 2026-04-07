@@ -3,6 +3,7 @@ using Revorq.API.Models.ElevatorModels;
 using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Repositories.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -10,41 +11,57 @@ public class ElevatorService : IElevatorService
 {
     private readonly IElevatorRepository _elevatorRepository;
     private readonly IBuildingRepository _buildingRepository;
+    private readonly UserManager<AppUser> _userManager;
 
     public ElevatorService(
         IElevatorRepository elevatorRepository,
-        IBuildingRepository buildingRepository)
+        IBuildingRepository buildingRepository,
+        UserManager<AppUser> userManager)
     {
         _elevatorRepository = elevatorRepository;
         _buildingRepository = buildingRepository;
+        _userManager = userManager;
     }
 
-    public async Task<IEnumerable<ElevatorResponse>> GetAllAsync()
+    public async Task<IEnumerable<ElevatorResponse>> GetAllAsync(int userId)
     {
-        var elevators = await _elevatorRepository.GetAllAsync();
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null) return [];
+
+        var elevators = await _elevatorRepository.GetAllByCompanyAsync(companyId.Value);
         return elevators.Select(el => MapToResponse(el));
     }
 
-    public async Task<IEnumerable<ElevatorResponse>> GetByBuildingNameAsync(string buildingName)
+    public async Task<IEnumerable<ElevatorResponse>> GetByBuildingNameAsync(string buildingName, int userId)
     {
-        var elevators = await _elevatorRepository.GetByBuildingNameAsync(buildingName);
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null) return [];
+
+        var elevators = await _elevatorRepository.GetByBuildingNameAsync(buildingName, companyId.Value);
         return elevators.Select(el => MapToResponse(el));
     }
 
-    public async Task<ServiceResult<ElevatorResponse>> GetByIdAsync(int id)
+    public async Task<ServiceResult<ElevatorResponse>> GetByIdAsync(int id, int userId)
     {
-        var elevator = await _elevatorRepository.GetByIdAsync(id);
-        if (elevator is null)
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null)
+            return ServiceResult<ElevatorResponse>.NotFound("User not found.");
+
+        var elevator = await _elevatorRepository.GetWithBuildingAsync(id);
+        if (elevator is null || elevator.Building.CompanyId != companyId.Value)
             return ServiceResult<ElevatorResponse>.NotFound($"Elevator {id} not found.");
 
         return ServiceResult<ElevatorResponse>.Ok(MapToResponse(elevator));
     }
 
-    public async Task<ServiceResult<bool>> CreateAsync(ElevatorRequest request)
+    public async Task<ServiceResult<bool>> CreateAsync(ElevatorRequest request, int userId)
     {
-        var building = await _buildingRepository.GetByIdAsync(request.BuildingId);
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null)
+            return ServiceResult<bool>.NotFound("User not found.");
 
-        if (building is null)
+        var building = await _buildingRepository.GetByIdAsync(request.BuildingId);
+        if (building is null || building.CompanyId != companyId.Value)
             return ServiceResult<bool>.Error($"Building {request.BuildingId} not found.");
 
         if (await _elevatorRepository.GetBySerialNumberAsync(request.SerialNumber) is not null)
@@ -73,14 +90,18 @@ public class ElevatorService : IElevatorService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> UpdateAsync(int id, ElevatorRequest request)
+    public async Task<ServiceResult<bool>> UpdateAsync(int id, ElevatorRequest request, int userId)
     {
-        var elevator = await _elevatorRepository.GetByIdAsync(id);
-        if (elevator is null)
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var elevator = await _elevatorRepository.GetWithBuildingAsync(id);
+        if (elevator is null || elevator.Building.CompanyId != companyId.Value)
             return ServiceResult<bool>.NotFound($"Elevator {id} not found.");
 
         var building = await _buildingRepository.GetByIdAsync(request.BuildingId);
-        if (building is null)
+        if (building is null || building.CompanyId != companyId.Value)
             return ServiceResult<bool>.Error($"Building {request.BuildingId} not found.");
 
         elevator.NumberInProject = request.NumberInProject;
@@ -100,10 +121,14 @@ public class ElevatorService : IElevatorService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> DeleteAsync(int id)
+    public async Task<ServiceResult<bool>> DeleteAsync(int id, int userId)
     {
-        var elevator = await _elevatorRepository.GetByIdAsync(id);
-        if (elevator is null)
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var elevator = await _elevatorRepository.GetWithBuildingAsync(id);
+        if (elevator is null || elevator.Building.CompanyId != companyId.Value)
             return ServiceResult<bool>.NotFound($"Elevator {id} not found.");
 
         _elevatorRepository.Delete(elevator);
@@ -112,7 +137,13 @@ public class ElevatorService : IElevatorService
         return ServiceResult<bool>.Ok(true);
     }
 
-    private static ElevatorResponse MapToResponse(Elevator el, string? buildingName = null) => new()
+    private async Task<int?> GetCompanyIdAsync(int userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        return user?.CompanyId;
+    }
+
+    private static ElevatorResponse MapToResponse(Elevator el) => new()
     {
         Id = el.Id,
         NumberInProject = el.NumberInProject,
@@ -126,6 +157,6 @@ public class ElevatorService : IElevatorService
         Priority = el.Priority,
         CreationDate = el.CreationDate,
         BuildingId = el.BuildingId,
-        BuildingName = buildingName ?? el.Building?.Name ?? string.Empty
+        BuildingName = el.Building?.Name ?? string.Empty
     };
 }
