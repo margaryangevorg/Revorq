@@ -2,7 +2,7 @@ namespace Revorq.DAL.Enums;
 
 public enum OrderStatus
 {
-    Open = 1,
-    InProgress = 2,
-    Done = 3
+    Open = 0,
+    InProgress = 1,
+    Done = 2
 }

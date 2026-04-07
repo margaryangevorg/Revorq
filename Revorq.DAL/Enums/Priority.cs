@@ -2,7 +2,7 @@ namespace Revorq.DAL.Enums;
 
 public enum Priority
 {
-    High = 1,
-    Medium = 2,
-    Low = 3
+    High = 0,
+    Medium = 1,
+    Low = 2
 }
