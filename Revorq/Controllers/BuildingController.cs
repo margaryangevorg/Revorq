@@ -9,7 +9,6 @@ namespace Revorq.API.Controllers;
 
 [ApiController]
 [Route("api/building")]
-[Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
 public class BuildingController : ControllerBase
 {
     private readonly IBuildingService _buildingService;
