@@ -12,7 +12,7 @@ public class MaintenanceOrderResponse
     public int? AssignedEngineerId { get; set; }
     public string? AssignedEngineerName { get; set; }
     public string MaintenanceType { get; set; } = string.Empty;
-    public DateTime? ScheduledDate { get; set; }
+    public DateTime ScheduledDate { get; set; }
     public OrderStatus Status { get; set; }
     public string? ShortDescription { get; set; }
     public MaintenanceReportResponse? Report { get; set; }

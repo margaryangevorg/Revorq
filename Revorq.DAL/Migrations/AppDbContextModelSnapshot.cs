@@ -269,7 +269,7 @@ namespace Revorq.DAL.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Buildings");
+                    b.ToTable("Buildings", (string)null);
                 });
 
             modelBuilder.Entity("Revorq.DAL.Entities.Company", b =>
@@ -300,7 +300,7 @@ namespace Revorq.DAL.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("Revorq.DAL.Entities.Elevator", b =>
@@ -359,7 +359,7 @@ namespace Revorq.DAL.Migrations
                     b.HasIndex("SerialNumber")
                         .IsUnique();
 
-                    b.ToTable("Elevators");
+                    b.ToTable("Elevators", (string)null);
                 });
 
             modelBuilder.Entity("Revorq.DAL.Entities.InvitationToken", b =>
@@ -398,7 +398,7 @@ namespace Revorq.DAL.Migrations
                     b.HasIndex("Token")
                         .IsUnique();
 
-                    b.ToTable("InvitationTokens");
+                    b.ToTable("InvitationTokens", (string)null);
                 });
 
             modelBuilder.Entity("Revorq.DAL.Entities.MaintenanceOrder", b =>
@@ -419,7 +419,7 @@ namespace Revorq.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("ScheduledDate")
+                    b.Property<DateTime>("ScheduledDate")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("ShortDescription")
@@ -436,7 +436,7 @@ namespace Revorq.DAL.Migrations
 
                     b.HasIndex("AssignedEngineerId", "ScheduledDate");
 
-                    b.ToTable("MaintenanceOrders");
+                    b.ToTable("MaintenanceOrders", (string)null);
                 });
 
             modelBuilder.Entity("Revorq.DAL.Entities.MaintenanceReport", b =>
@@ -471,7 +471,7 @@ namespace Revorq.DAL.Migrations
 
                     b.HasKey("OrderId");
 
-                    b.ToTable("MaintenanceReports");
+                    b.ToTable("MaintenanceReports", (string)null);
                 });
 
             modelBuilder.Entity("Revorq.DAL.Entities.RefreshToken", b =>
@@ -506,7 +506,7 @@ namespace Revorq.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Revorq.DAL.Entities.UserBuildingAccess", b =>
@@ -521,7 +521,7 @@ namespace Revorq.DAL.Migrations
 
                     b.HasIndex("BuildingId");
 
-                    b.ToTable("UserBuildingAccesses");
+                    b.ToTable("UserBuildingAccesses", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

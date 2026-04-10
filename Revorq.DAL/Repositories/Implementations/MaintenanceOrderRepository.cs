@@ -28,8 +28,8 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
                 .ThenInclude(el => el.Building)
             .Include(o => o.AssignedEngineer)
             .Include(o => o.Report)
-            .Where(o => o.ScheduledDate.HasValue && o.ScheduledDate.Value.Year == year
-                     && o.ScheduledDate.Value.Month == month
+            .Where(o => o.ScheduledDate.Year == year
+                     && o.ScheduledDate.Month == month
                      && (engineerId == null || o.AssignedEngineerId == engineerId)
                      && (status == null || o.Status == status)
                      && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null))
