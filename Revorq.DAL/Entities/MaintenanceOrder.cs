@@ -13,7 +13,7 @@ public class MaintenanceOrder
     public AppUser? AssignedEngineer { get; set; }
 
     public MaintenanceType MaintenanceType { get; set; }
-    public DateTime ScheduledDate { get; set; }
+    public DateTime? ScheduledDate { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Open;
 
     public string? ShortDescription { get; set; }
