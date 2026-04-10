@@ -45,6 +45,19 @@ public class MaintenanceController : ControllerBase
         return Ok(await _maintenanceService.GetUnscheduledAsync());
     }
 
+    [HttpPost("default-planning")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> CreateDefaultPlanning([FromQuery] int year, [FromQuery] int month)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.CreateDefaultPlanningAsync(userId.Value, year, month);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+        return Ok(result.Data);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {

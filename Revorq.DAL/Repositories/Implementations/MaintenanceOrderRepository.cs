@@ -10,6 +10,23 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
 {
     public MaintenanceOrderRepository(AppDbContext context) : base(context) { }
 
+    public async Task AddOrdersAsync(IEnumerable<MaintenanceOrder> orders)
+    {
+        await _context.MaintenanceOrders.AddRangeAsync(orders);
+    }
+
+    public async Task<IEnumerable<int>> GetScheduledElevatorIdsAsync(IEnumerable<int> elevatorIds, int year, int month)
+    {
+        return await _context.MaintenanceOrders
+            .Where(o => elevatorIds.Contains(o.ElevatorId)
+                     && o.MaintenanceType == MaintenanceType.Scheduled
+                     && o.ScheduledDate.Year == year
+                     && o.ScheduledDate.Month == month)
+            .Select(o => o.ElevatorId)
+            .Distinct()
+            .ToListAsync();
+    }
+
     public async Task<MaintenanceOrder?> GetByIdWithReportAsync(int id)
     {
         return await _context.MaintenanceOrders

@@ -56,6 +56,14 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Elevator>> GetAllByCompanyAsync(int companyId)
+    {
+        return await _context.Elevators
+            .Where(e => e.Building.CompanyId == companyId)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Elevator>> GetByBuildingNameByUserAsync(string buildingName, int userId)
     {
         return await _context.UserBuildingAccesses

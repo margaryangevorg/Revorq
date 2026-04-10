@@ -6,6 +6,7 @@ using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using Microsoft.AspNetCore.Identity;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -13,16 +14,19 @@ public class MaintenanceService : IMaintenanceService
 {
     private readonly IMaintenanceOrderRepository _orderRepository;
     private readonly IMaintenanceReportRepository _reportRepository;
-    private readonly IRepository<Elevator> _elevatorRepository;
+    private readonly IElevatorRepository _elevatorRepository;
+    private readonly UserManager<AppUser> _userManager;
 
     public MaintenanceService(
         IMaintenanceOrderRepository orderRepository,
         IMaintenanceReportRepository reportRepository,
-        IRepository<Elevator> elevatorRepository)
+        IElevatorRepository elevatorRepository,
+        UserManager<AppUser> userManager)
     {
         _orderRepository = orderRepository;
         _reportRepository = reportRepository;
         _elevatorRepository = elevatorRepository;
+        _userManager = userManager;
     }
 
     public async Task<IEnumerable<MaintenanceOrderResponse>> GetOrdersUntilDateAsync(DateTime untilDate)
@@ -165,6 +169,49 @@ public class MaintenanceService : IMaintenanceService
         await _orderRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);
+    }
+
+    public async Task<ServiceResult<IEnumerable<MaintenanceOrderResponse>>> CreateDefaultPlanningAsync(int userId, int year, int month)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.NotFound("User not found.");
+
+        var elevators = await _elevatorRepository.GetAllByCompanyAsync(user.CompanyId);
+        var elevatorIds = elevators.Select(e => e.Id).ToList();
+
+        var alreadyScheduledIds = await _orderRepository.GetScheduledElevatorIdsAsync(elevatorIds, year, month);
+        var alreadyScheduledSet = alreadyScheduledIds.ToHashSet();
+
+        var elevatorsToSchedule = elevators.Where(e => !alreadyScheduledSet.Contains(e.Id)).ToList();
+        if (!elevatorsToSchedule.Any())
+            return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok([]);
+
+        var scheduledDate = new DateTime(year, month, 1);
+
+        var orders = elevatorsToSchedule.Select(elevator => new MaintenanceOrder
+        {
+            ElevatorId = elevator.Id,
+            MaintenanceType = MaintenanceType.Scheduled,
+            ScheduledDate = scheduledDate,
+            ShortDescription = "Default planing order",
+            Status = OrderStatus.Open
+        }).ToList();
+
+        await _orderRepository.AddOrdersAsync(orders);
+        await _orderRepository.SaveChangesAsync();
+
+        var responses = orders.Select(o => new MaintenanceOrderResponse
+        {
+            Id = o.Id,
+            ElevatorId = o.ElevatorId,
+            MaintenanceType = o.MaintenanceType.ToString(),
+            ScheduledDate = o.ScheduledDate,
+            ShortDescription = o.ShortDescription,
+            Status = o.Status
+        });
+
+        return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(responses);
     }
 
     private static MaintenanceOrderResponse MapToResponse(MaintenanceOrder o) => new()
