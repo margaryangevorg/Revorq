@@ -58,6 +58,15 @@ public class MaintenanceController : ControllerBase
         return Ok(result.Data);
     }
 
+    [HttpPost("auto-planning")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> AutoPlanning([FromQuery] int year, [FromQuery] int month)
+    {
+        var result = await _maintenanceService.AutoPlanningAsync(year, month);
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+        return Ok(result.Data);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {

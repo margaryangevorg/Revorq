@@ -27,6 +27,28 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<MaintenanceOrder>> GetUnassignedScheduledOrdersAsync(int year, int month)
+    {
+        return await _context.MaintenanceOrders
+            .Where(o => o.MaintenanceType == MaintenanceType.Scheduled
+                     && o.AssignedEngineerId == null
+                     && o.ScheduledDate.Year == year
+                     && o.ScheduledDate.Month == month)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<MaintenanceOrder>> GetOrdersByElevatorIdsAndMonthAsync(IEnumerable<int> elevatorIds, int year, int month)
+    {
+        return await _context.MaintenanceOrders
+            .Where(o => elevatorIds.Contains(o.ElevatorId)
+                     && o.MaintenanceType == MaintenanceType.Scheduled
+                     && o.ScheduledDate.Year == year
+                     && o.ScheduledDate.Month == month
+                     && o.AssignedEngineerId != null)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
     public async Task<MaintenanceOrder?> GetByIdWithReportAsync(int id)
     {
         return await _context.MaintenanceOrders

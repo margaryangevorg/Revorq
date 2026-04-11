@@ -214,6 +214,34 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(responses);
     }
 
+    public async Task<ServiceResult<IEnumerable<MaintenanceOrderResponse>>> AutoPlanningAsync(int year, int month)
+    {
+        var unassignedOrders = (await _orderRepository.GetUnassignedScheduledOrdersAsync(year, month)).ToList();
+        if (!unassignedOrders.Any())
+            return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok([]);
+
+        var prevMonth = month == 1 ? 12 : month - 1;
+        var prevYear = month == 1 ? year - 1 : year;
+
+        var elevatorIds = unassignedOrders.Select(o => o.ElevatorId).ToList();
+        var prevMonthOrders = await _orderRepository.GetOrdersByElevatorIdsAndMonthAsync(elevatorIds, prevYear, prevMonth);
+        var prevMonthMap = prevMonthOrders.ToDictionary(o => o.ElevatorId);
+
+        foreach (var order in unassignedOrders)
+        {
+            if (!prevMonthMap.TryGetValue(order.ElevatorId, out var prev))
+                continue;
+
+            order.AssignedEngineerId = prev.AssignedEngineerId;
+            order.ScheduledDate = new DateTime(year, month, prev.ScheduledDate.Day);
+            _orderRepository.Update(order);
+        }
+
+        await _orderRepository.SaveChangesAsync();
+
+        return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(unassignedOrders.Select(MapToResponse));
+    }
+
     private static MaintenanceOrderResponse MapToResponse(MaintenanceOrder o) => new()
     {
         Id = o.Id,
