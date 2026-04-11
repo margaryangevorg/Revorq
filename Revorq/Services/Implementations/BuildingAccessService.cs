@@ -119,6 +119,8 @@ public class BuildingAccessService : IBuildingAccessService
             Name = b.Name,
             Address = b.Address,
             BuildingType = b.BuildingType,
+            Latitude = b.Latitude,
+            Longitude = b.Longitude,
             ElevatorCount = b.Elevators.Count
         });
 

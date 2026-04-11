@@ -35,6 +35,8 @@ public class BuildingService : IBuildingService
                 Name = b.Name,
                 Address = b.Address,
                 BuildingType = b.BuildingType,
+                Latitude = b.Latitude,
+                Longitude = b.Longitude,
                 ElevatorCount = b.Elevators.Count
             });
     }
@@ -80,6 +82,8 @@ public class BuildingService : IBuildingService
             Name = request.Name,
             Address = request.Address,
             BuildingType = request.BuildingType,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
             CompanyId = companyId.Value
         };
 
@@ -110,6 +114,8 @@ public class BuildingService : IBuildingService
         building.Name = request.Name;
         building.Address = request.Address;
         building.BuildingType = request.BuildingType;
+        building.Latitude = request.Latitude;
+        building.Longitude = request.Longitude;
 
         _repository.Update(building);
         await _repository.SaveChangesAsync();
@@ -145,6 +151,8 @@ public class BuildingService : IBuildingService
         Name = building.Name,
         Address = building.Address,
         BuildingType = building.BuildingType,
+        Latitude = building.Latitude,
+        Longitude = building.Longitude,
         Elevators = building.Elevators.Select(el => new ElevatorSummary
         {
             Id = el.Id,

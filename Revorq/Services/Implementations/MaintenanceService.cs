@@ -249,6 +249,8 @@ public class MaintenanceService : IMaintenanceService
         ElevatorNumberInProject = o.Elevator?.NumberInProject ?? string.Empty,
         BuildingName = o.Elevator?.Building?.Name ?? string.Empty,
         BuildingAddress = o.Elevator?.Building?.Address ?? string.Empty,
+        BuildingLatitude = o.Elevator?.Building?.Latitude,
+        BuildingLongitude = o.Elevator?.Building?.Longitude,
         AssignedEngineerId = o.AssignedEngineerId,
         AssignedEngineerName = o.AssignedEngineer is null
             ? string.Empty
