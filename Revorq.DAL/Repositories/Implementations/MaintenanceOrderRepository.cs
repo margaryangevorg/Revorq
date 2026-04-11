@@ -15,10 +15,10 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
         await _context.MaintenanceOrders.AddRangeAsync(orders);
     }
 
-    public async Task<IEnumerable<int>> GetScheduledElevatorIdsAsync(IEnumerable<int> elevatorIds, int year, int month)
+    public async Task<IEnumerable<int>> GetScheduledElevatorIdsAsync(int companyId, int year, int month)
     {
         return await _context.MaintenanceOrders
-            .Where(o => elevatorIds.Contains(o.ElevatorId)
+            .Where(o => o.Elevator.Building.CompanyId == companyId
                      && o.MaintenanceType == MaintenanceType.Scheduled
                      && o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month)
@@ -27,13 +27,14 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<MaintenanceOrder>> GetUnassignedScheduledOrdersAsync(int year, int month)
+    public async Task<IEnumerable<MaintenanceOrder>> GetUnassignedScheduledOrdersAsync(int year, int month, int companyId)
     {
         return await _context.MaintenanceOrders
             .Where(o => o.MaintenanceType == MaintenanceType.Scheduled
                      && o.AssignedEngineerId == null
                      && o.ScheduledDate.Year == year
-                     && o.ScheduledDate.Month == month)
+                     && o.ScheduledDate.Month == month
+                     && o.Elevator.Building.CompanyId == companyId)
             .ToListAsync();
     }
 

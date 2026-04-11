@@ -62,7 +62,10 @@ public class MaintenanceController : ControllerBase
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> AutoPlanning([FromQuery] int year, [FromQuery] int month)
     {
-        var result = await _maintenanceService.AutoPlanningAsync(year, month);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.AutoPlanningAsync(userId.Value, year, month);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         return Ok(result.Data);
     }

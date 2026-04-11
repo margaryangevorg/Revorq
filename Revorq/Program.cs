@@ -47,7 +47,8 @@ builder.Services.AddSwaggerGen(c =>
 
 // EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3)));
 
 // Identity
 builder.Services.AddIdentity<AppUser, IdentityRole<int>>(options =>

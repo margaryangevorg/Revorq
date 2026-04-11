@@ -178,9 +178,8 @@ public class MaintenanceService : IMaintenanceService
             return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.NotFound("User not found.");
 
         var elevators = await _elevatorRepository.GetAllByCompanyAsync(user.CompanyId);
-        var elevatorIds = elevators.Select(e => e.Id).ToList();
 
-        var alreadyScheduledIds = await _orderRepository.GetScheduledElevatorIdsAsync(elevatorIds, year, month);
+        var alreadyScheduledIds = await _orderRepository.GetScheduledElevatorIdsAsync(user.CompanyId, year, month);
         var alreadyScheduledSet = alreadyScheduledIds.ToHashSet();
 
         var elevatorsToSchedule = elevators.Where(e => !alreadyScheduledSet.Contains(e.Id)).ToList();
@@ -214,9 +213,13 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(responses);
     }
 
-    public async Task<ServiceResult<IEnumerable<MaintenanceOrderResponse>>> AutoPlanningAsync(int year, int month)
+    public async Task<ServiceResult<IEnumerable<MaintenanceOrderResponse>>> AutoPlanningAsync(int userId, int year, int month)
     {
-        var unassignedOrders = (await _orderRepository.GetUnassignedScheduledOrdersAsync(year, month)).ToList();
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.NotFound("User not found.");
+
+        var unassignedOrders = (await _orderRepository.GetUnassignedScheduledOrdersAsync(year, month, user.CompanyId)).ToList();
         if (!unassignedOrders.Any())
             return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok([]);
 
@@ -225,7 +228,9 @@ public class MaintenanceService : IMaintenanceService
 
         var elevatorIds = unassignedOrders.Select(o => o.ElevatorId).ToList();
         var prevMonthOrders = await _orderRepository.GetOrdersByElevatorIdsAndMonthAsync(elevatorIds, prevYear, prevMonth);
-        var prevMonthMap = prevMonthOrders.ToDictionary(o => o.ElevatorId);
+        var prevMonthMap = prevMonthOrders
+            .GroupBy(o => o.ElevatorId)
+            .ToDictionary(g => g.Key, g => g.First());
 
         foreach (var order in unassignedOrders)
         {
