@@ -61,7 +61,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     }
 
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
-        int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
+        int? companyId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
     {
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
@@ -70,6 +70,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .Include(o => o.Report)
             .Where(o => o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month
+                     && (companyId == null || o.Elevator.Building.CompanyId == companyId)
                      && (engineerId == null || o.AssignedEngineerId == engineerId)
                      && (status == null || o.Status == status)
                      && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null))
