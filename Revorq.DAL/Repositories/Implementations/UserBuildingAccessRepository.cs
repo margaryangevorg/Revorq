@@ -1,5 +1,6 @@
 using Revorq.DAL.Context;
 using Revorq.DAL.Entities;
+using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,9 +27,9 @@ public class UserBuildingAccessRepository : IUserBuildingAccessRepository
     public async Task<IEnumerable<Building>> GetBuildingsForUserAsync(int userId)
     {
         return await _context.UserBuildingAccesses
-            .Where(a => a.UserId == userId)
+            .Where(a => a.UserId == userId && a.Building.Status == EntityStatus.Active)
             .Include(a => a.Building)
-                .ThenInclude(b => b.Elevators)
+                .ThenInclude(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
             .Select(a => a.Building)
             .AsNoTracking()
             .ToListAsync();

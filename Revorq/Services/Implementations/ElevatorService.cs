@@ -2,6 +2,7 @@ using Revorq.API.Models;
 using Revorq.API.Models.ElevatorModels;
 using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
+using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
@@ -125,7 +126,8 @@ public class ElevatorService : IElevatorService
         if (elevator is null || elevator.Building.CompanyId != companyId.Value)
             return ServiceResult<bool>.NotFound($"Elevator {id} not found.");
 
-        _elevatorRepository.Delete(elevator);
+        elevator.Status = EntityStatus.Deleted;
+        _elevatorRepository.Update(elevator);
         await _elevatorRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);

@@ -11,15 +11,18 @@ namespace Revorq.API.Services.Implementations;
 public class BuildingService : IBuildingService
 {
     private readonly IBuildingRepository _repository;
+    private readonly IElevatorRepository _elevatorRepository;
     private readonly IUserBuildingAccessRepository _accessRepository;
     private readonly UserManager<AppUser> _userManager;
 
     public BuildingService(
         IBuildingRepository repository,
+        IElevatorRepository elevatorRepository,
         IUserBuildingAccessRepository accessRepository,
         UserManager<AppUser> userManager)
     {
         _repository = repository;
+        _elevatorRepository = elevatorRepository;
         _accessRepository = accessRepository;
         _userManager = userManager;
     }
@@ -133,7 +136,9 @@ public class BuildingService : IBuildingService
         if (building is null)
             return ServiceResult<bool>.NotFound($"Building {id} not found.");
 
-        _repository.Delete(building);
+        building.Status = EntityStatus.Deleted;
+        _repository.Update(building);
+        await _elevatorRepository.UpdateStatusByBuildingAsync(building.Id, EntityStatus.Deleted);
         await _repository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);

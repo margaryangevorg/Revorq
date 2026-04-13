@@ -15,6 +15,7 @@ public class Elevator
     public DateTime? WarrantyDate { get; set; }
     public Priority? Priority { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.Now;
+    public EntityStatus Status { get; set; } = EntityStatus.Active;
 
     public int BuildingId { get; set; }
     public Building Building { get; set; } = null!;

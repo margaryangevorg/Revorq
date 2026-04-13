@@ -1,5 +1,6 @@
 using Revorq.DAL.Context;
 using Revorq.DAL.Entities;
+using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,21 +14,21 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
     {
         return await _context.Elevators
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.SerialNumber == serialNumber);
+            .FirstOrDefaultAsync(e => e.SerialNumber == serialNumber && e.Status == EntityStatus.Active);
     }
 
     public async Task<Elevator?> GetByNumberInProjectAsync(int buildingId, string numberInProject)
     {
         return await _context.Elevators
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.BuildingId == buildingId && e.NumberInProject == numberInProject);
+            .FirstOrDefaultAsync(e => e.BuildingId == buildingId && e.NumberInProject == numberInProject && e.Status == EntityStatus.Active);
     }
 
     public async Task<Elevator?> GetWithBuildingAsync(int id)
     {
         return await _context.Elevators
             .Include(e => e.Building)
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .FirstOrDefaultAsync(e => e.Id == id && e.Status == EntityStatus.Active);
     }
 
     public async Task<IEnumerable<Elevator>> GetAllByUserAsync(int userId)
@@ -36,7 +37,7 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .Where(a => a.UserId == userId)
             .Include(a => a.Building)
                 .ThenInclude(b => b.Elevators)
-            .SelectMany(a => a.Building.Elevators.Select(e => new Elevator
+            .SelectMany(a => a.Building.Elevators.Where(e => e.Status == EntityStatus.Active).Select(e => new Elevator
             {
                 Id = e.Id,
                 NumberInProject = e.NumberInProject,
@@ -56,10 +57,17 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .ToListAsync();
     }
 
+    public async Task UpdateStatusByBuildingAsync(int buildingId, EntityStatus status)
+    {
+        await _context.Elevators
+            .Where(e => e.BuildingId == buildingId)
+            .ExecuteUpdateAsync(s => s.SetProperty(e => e.Status, status));
+    }
+
     public async Task<IEnumerable<Elevator>> GetAllByCompanyAsync(int companyId)
     {
         return await _context.Elevators
-            .Where(e => e.Building.CompanyId == companyId)
+            .Where(e => e.Building.CompanyId == companyId && e.Status == EntityStatus.Active)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -70,7 +78,7 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .Where(a => a.UserId == userId && a.Building.Name.ToLower() == buildingName.ToLower())
             .Include(a => a.Building)
                 .ThenInclude(b => b.Elevators)
-            .SelectMany(a => a.Building.Elevators.Select(e => new Elevator
+            .SelectMany(a => a.Building.Elevators.Where(e => e.Status == EntityStatus.Active).Select(e => new Elevator
             {
                 Id = e.Id,
                 NumberInProject = e.NumberInProject,

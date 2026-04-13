@@ -11,6 +11,7 @@ public class Building
 
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
+    public EntityStatus Status { get; set; } = EntityStatus.Active;
 
     public int CompanyId { get; set; }
     public Company Company { get; set; } = null!;

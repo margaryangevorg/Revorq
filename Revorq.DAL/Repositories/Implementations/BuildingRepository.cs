@@ -13,8 +13,8 @@ public class BuildingRepository : Repository<Building>, IBuildingRepository
     public async Task<IEnumerable<Building>> GetAllAsync(int companyId, BuildingType? type)
     {
         var query = _context.Buildings
-            .Include(b => b.Elevators)
-            .Where(b => b.CompanyId == companyId)
+            .Include(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
+            .Where(b => b.CompanyId == companyId && b.Status == EntityStatus.Active)
             .AsQueryable();
 
         if (type is not null)
@@ -26,16 +26,16 @@ public class BuildingRepository : Repository<Building>, IBuildingRepository
     public async Task<Building?> GetWithElevatorsAsync(int buildingId, int companyId)
     {
         return await _context.Buildings
-            .Include(b => b.Elevators)
+            .Include(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
             .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Id == buildingId && b.CompanyId == companyId);
+            .FirstOrDefaultAsync(b => b.Id == buildingId && b.CompanyId == companyId && b.Status == EntityStatus.Active);
     }
 
     public async Task<Building?> GetByNameAsync(string name, int companyId)
     {
         return await _context.Buildings
-            .Include(b => b.Elevators)
+            .Include(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
             .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Name.ToLower() == name.ToLower() && b.CompanyId == companyId);
+            .FirstOrDefaultAsync(b => b.Name.ToLower() == name.ToLower() && b.CompanyId == companyId && b.Status == EntityStatus.Active);
     }
 }
