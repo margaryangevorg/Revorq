@@ -61,17 +61,19 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     }
 
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
-        int? companyId, int? engineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
+        int userId, int? assignedEngineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
     {
-        return await _context.MaintenanceOrders
+        return await _context.UserBuildingAccesses
+            .Where(a => a.UserId == userId)
+            .SelectMany(a => a.Building.Elevators)
+            .SelectMany(e => e.MaintenanceOrders)
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
             .Include(o => o.AssignedEngineer)
             .Include(o => o.Report)
             .Where(o => o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month
-                     && (companyId == null || o.Elevator.Building.CompanyId == companyId)
-                     && (engineerId == null || o.AssignedEngineerId == engineerId)
+                     && (assignedEngineerId == null || o.AssignedEngineerId == assignedEngineerId)
                      && (status == null || o.Status == status)
                      && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null))
                      && (isScheduled == null || (isScheduled == true ? o.MaintenanceType == MaintenanceType.Scheduled : o.MaintenanceType == MaintenanceType.Unscheduled)))

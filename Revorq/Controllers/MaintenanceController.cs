@@ -28,7 +28,6 @@ public class MaintenanceController : ControllerBase
 
     [HttpGet("monthly")]
     public async Task<IActionResult> GetMonthly(
-        [FromQuery] int? engineerId,
         [FromQuery] int year,
         [FromQuery] int month,
         [FromQuery] OrderStatus? status,
@@ -38,7 +37,7 @@ public class MaintenanceController : ControllerBase
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        return Ok(await _maintenanceService.GetMonthlyAsync(userId.Value, engineerId, year, month, status, isUnassigned, isScheduled));
+        return Ok(await _maintenanceService.GetMonthlyAsync(userId.Value, year, month, status, isUnassigned, isScheduled));
     }
 
     [HttpGet("unscheduled")]
