@@ -112,7 +112,7 @@ public class BuildingService : IBuildingService
         {
             foreach (var file in request.Files)
             {
-                var url = await _storageService.UploadAsync(building.Id, file);
+                var url = await _storageService.UploadBuildingFileAsync(building.Id, file);
                 await _context.BuildingFiles.AddAsync(new BuildingFile
                 {
                     BuildingId = building.Id,

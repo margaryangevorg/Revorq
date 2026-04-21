@@ -9,7 +9,7 @@ public class Company
     public CompanyStatus Status { get; set; } = CompanyStatus.Pending;
     public DateTime RegisteredAt { get; set; } = DateTime.Now;
 
-    public byte[]? LogoData { get; set; }
+    public string? LogoUrl { get; set; }
 
     public ICollection<AppUser> Members { get; set; } = [];
     public ICollection<InvitationToken> InvitationTokens { get; set; } = [];

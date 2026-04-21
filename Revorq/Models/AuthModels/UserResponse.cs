@@ -10,5 +10,5 @@ public class UserResponse
     public string Role { get; set; } = string.Empty;
     public int CompanyId { get; set; }
     public string CompanyName { get; set; } = string.Empty;
-    public string? CompanyLogoBase64 { get; set; }
+    public string? CompanyLogoUrl { get; set; }
 }

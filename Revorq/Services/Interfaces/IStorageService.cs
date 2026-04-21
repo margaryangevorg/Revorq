@@ -2,6 +2,7 @@ namespace Revorq.API.Services.Interfaces;
 
 public interface IStorageService
 {
-    Task<string> UploadAsync(int buildingId, IFormFile file);
-    Task DeleteAsync(string fileUrl);
+    Task<string> UploadBuildingFileAsync(int buildingId, IFormFile file);
+    Task<string> UploadCompanyLogoAsync(int companyId, IFormFile file);
+    Task DeleteFileAsync(string fileUrl);
 }

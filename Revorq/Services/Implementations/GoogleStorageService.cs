@@ -30,7 +30,7 @@ public class GoogleStorageService : IStorageService
         _storageClient = StorageClient.Create(credential);
     }
 
-    public async Task<string> UploadAsync(int buildingId, IFormFile file)
+    public async Task<string> UploadBuildingFileAsync(int buildingId, IFormFile file)
     {
         var folder = file.ContentType.StartsWith("image/") ? "images" : "documents";
         var ext = Path.GetExtension(file.FileName);
@@ -42,7 +42,18 @@ public class GoogleStorageService : IStorageService
         return $"https://storage.googleapis.com/{_bucketName}/{objectName}";
     }
 
-    public async Task DeleteAsync(string fileUrl)
+    public async Task<string> UploadCompanyLogoAsync(int companyId, IFormFile file)
+    {
+        var ext = Path.GetExtension(file.FileName);
+        var objectName = $"companies/{companyId}/logo{ext}";
+
+        await using var stream = file.OpenReadStream();
+        await _storageClient.UploadObjectAsync(_bucketName, objectName, file.ContentType, stream);
+
+        return $"https://storage.googleapis.com/{_bucketName}/{objectName}";
+    }
+
+    public async Task DeleteFileAsync(string fileUrl)
     {
         var prefix = $"https://storage.googleapis.com/{_bucketName}/";
         var objectName = fileUrl[prefix.Length..];

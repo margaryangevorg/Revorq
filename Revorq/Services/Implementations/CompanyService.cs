@@ -6,8 +6,6 @@ using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -18,6 +16,7 @@ public class CompanyService : ICompanyService
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IBuildingRepository _buildingRepository;
     private readonly IUserBuildingAccessRepository _accessRepository;
+    private readonly IStorageService _storageService;
     private readonly UserManager<AppUser> _userManager;
     private readonly IJwtService _jwtService;
 
@@ -27,6 +26,7 @@ public class CompanyService : ICompanyService
         IRefreshTokenRepository refreshTokenRepository,
         IBuildingRepository buildingRepository,
         IUserBuildingAccessRepository accessRepository,
+        IStorageService storageService,
         UserManager<AppUser> userManager,
         IJwtService jwtService)
     {
@@ -35,6 +35,7 @@ public class CompanyService : ICompanyService
         _refreshTokenRepository = refreshTokenRepository;
         _buildingRepository = buildingRepository;
         _accessRepository = accessRepository;
+        _storageService = storageService;
         _userManager = userManager;
         _jwtService = jwtService;
     }
@@ -224,7 +225,8 @@ public class CompanyService : ICompanyService
             Name = company.Name,
             Status = company.Status.ToString(),
             RegisteredAt = company.RegisteredAt,
-            MemberCount = company.Members.Count
+            MemberCount = company.Members.Count,
+            LogoUrl = company.LogoUrl
         });
     }
 
@@ -234,16 +236,10 @@ public class CompanyService : ICompanyService
         if (company is null)
             return ServiceResult<bool>.NotFound($"Company {companyId} not found.");
 
-        using var image = await Image.LoadAsync(logo.OpenReadStream());
-        image.Mutate(x => x.Resize(new ResizeOptions
-        {
-            Size = new Size(512, 512),
-            Mode = ResizeMode.Max
-        }));
-        using var ms = new MemoryStream();
-        await image.SaveAsJpegAsync(ms);
+        if (!string.IsNullOrEmpty(company.LogoUrl))
+            await _storageService.DeleteFileAsync(company.LogoUrl);
 
-        company.LogoData = ms.ToArray();
+        company.LogoUrl = await _storageService.UploadCompanyLogoAsync(companyId, logo);
         _companyRepository.Update(company);
         await _companyRepository.SaveChangesAsync();
 

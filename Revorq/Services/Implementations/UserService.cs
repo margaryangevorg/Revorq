@@ -39,7 +39,7 @@ public class UserService : IUserService
             Role = roles.FirstOrDefault() ?? string.Empty,
             CompanyId = user.CompanyId,
             CompanyName = user.Company.Name,
-            CompanyLogoBase64 = user.Company.LogoData is null ? null : Convert.ToBase64String(user.Company.LogoData)
+            CompanyLogoUrl = user.Company.LogoUrl
         });
     }
 
