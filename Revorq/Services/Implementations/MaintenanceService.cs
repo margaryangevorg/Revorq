@@ -4,8 +4,6 @@ using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 using Microsoft.AspNetCore.Identity;
 
 namespace Revorq.API.Services.Implementations;
@@ -15,17 +13,20 @@ public class MaintenanceService : IMaintenanceService
     private readonly IMaintenanceOrderRepository _orderRepository;
     private readonly IMaintenanceReportRepository _reportRepository;
     private readonly IElevatorRepository _elevatorRepository;
+    private readonly IStorageService _storageService;
     private readonly UserManager<AppUser> _userManager;
 
     public MaintenanceService(
         IMaintenanceOrderRepository orderRepository,
         IMaintenanceReportRepository reportRepository,
         IElevatorRepository elevatorRepository,
+        IStorageService storageService,
         UserManager<AppUser> userManager)
     {
         _orderRepository = orderRepository;
         _reportRepository = reportRepository;
         _elevatorRepository = elevatorRepository;
+        _storageService = storageService;
         _userManager = userManager;
     }
 
@@ -111,18 +112,11 @@ public class MaintenanceService : IMaintenanceService
         if (order.Status == OrderStatus.Done)
             return ServiceResult<bool>.Error("Order is already completed.");
 
-        byte[]? imageData = null;
-        if (request.Image is not null)
+        var uploadedUrls = new List<string>();
+        if (request.Images is { Count: > 0 })
         {
-            using var image = await Image.LoadAsync(request.Image.OpenReadStream());
-            image.Mutate(x => x.Resize(new ResizeOptions
-            {
-                Size = new Size(1024, 1024),
-                Mode = ResizeMode.Max
-            }));
-            using var ms = new MemoryStream();
-            await image.SaveAsJpegAsync(ms);
-            imageData = ms.ToArray();
+            var uploadTasks = request.Images.Select(img => _storageService.UploadMaintenanceReportImageAsync(orderId, img));
+            uploadedUrls.AddRange(await Task.WhenAll(uploadTasks));
         }
 
         if (order.Report is null)
@@ -137,7 +131,7 @@ public class MaintenanceService : IMaintenanceService
                 AdjustmentDone = request.AdjustmentDone,
                 CleaningDone = request.CleaningDone,
                 ShortDescription = request.ShortDescription,
-                ImageData = imageData
+                ImageUrls = uploadedUrls
             };
 
             await _reportRepository.AddAsync(report);
@@ -152,8 +146,8 @@ public class MaintenanceService : IMaintenanceService
             report.AdjustmentDone = request.AdjustmentDone;
             report.CleaningDone = request.CleaningDone;
             report.ShortDescription = request.ShortDescription;
-            if (imageData is not null)
-                report.ImageData = imageData;
+            if (uploadedUrls.Count > 0)
+                report.ImageUrls.AddRange(uploadedUrls);
 
             _reportRepository.Update(report);
         }
@@ -280,7 +274,7 @@ public class MaintenanceService : IMaintenanceService
             AdjustmentDone = o.Report.AdjustmentDone,
             CleaningDone = o.Report.CleaningDone,
             ShortDescription = o.Report.ShortDescription,
-            ImageBase64 = o.Report.ImageData is null ? null : Convert.ToBase64String(o.Report.ImageData)
+            ImageUrls = o.Report.ImageUrls
         }
     };
 }

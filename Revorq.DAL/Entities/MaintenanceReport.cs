@@ -14,5 +14,5 @@ public class MaintenanceReport
     public bool CleaningDone { get; set; }
 
     public string? ShortDescription { get; set; }
-    public byte[]? ImageData { get; set; }
+    public List<string> ImageUrls { get; set; } = [];
 }

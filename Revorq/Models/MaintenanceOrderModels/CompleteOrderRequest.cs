@@ -11,6 +11,6 @@ public class CreateReportRequest
     public bool AdjustmentDone { get; set; }
     public bool CleaningDone { get; set; }
     public string? ShortDescription { get; set; }
-    public IFormFile? Image { get; set; }
+    public List<IFormFile>? Images { get; set; }
     public OrderStatus? Status { get; set; }
 }

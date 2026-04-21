@@ -2,6 +2,7 @@ using Revorq.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Revorq.DAL.Context;
 
@@ -165,6 +166,12 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.HasKey(r => r.OrderId);
 
             e.Property(r => r.ShortDescription).HasMaxLength(1000);
+
+            e.Property(r => r.ImageUrls)
+             .HasConversion(
+                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                 v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
+             .HasColumnType("text");
 
             e.HasOne(r => r.MaintenanceOrder)
              .WithOne(o => o.Report)

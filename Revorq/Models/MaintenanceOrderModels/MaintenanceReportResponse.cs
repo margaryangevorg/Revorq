@@ -9,5 +9,5 @@ public class MaintenanceReportResponse
     public bool AdjustmentDone { get; set; }
     public bool CleaningDone { get; set; }
     public string? ShortDescription { get; set; }
-    public string? ImageBase64 { get; set; }
+    public List<string> ImageUrls { get; set; } = [];
 }
