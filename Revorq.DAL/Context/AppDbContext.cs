@@ -17,6 +17,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<MaintenanceOrder> MaintenanceOrders => Set<MaintenanceOrder>();
     public DbSet<MaintenanceReport> MaintenanceReports => Set<MaintenanceReport>();
     public DbSet<UserBuildingAccess> UserBuildingAccesses => Set<UserBuildingAccess>();
+    public DbSet<BuildingFile> BuildingFiles => Set<BuildingFile>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -143,6 +144,19 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.HasOne(a => a.Building)
              .WithMany(b => b.UserAccesses)
              .HasForeignKey(a => a.BuildingId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<BuildingFile>(e =>
+        {
+            e.HasKey(f => f.Id);
+            e.Property(f => f.Url).IsRequired();
+            e.Property(f => f.OriginalName).IsRequired().HasMaxLength(255);
+            e.Property(f => f.ContentType).IsRequired().HasMaxLength(100);
+
+            e.HasOne(f => f.Building)
+             .WithMany(b => b.Files)
+             .HasForeignKey(f => f.BuildingId)
              .OnDelete(DeleteBehavior.Cascade);
         });
 

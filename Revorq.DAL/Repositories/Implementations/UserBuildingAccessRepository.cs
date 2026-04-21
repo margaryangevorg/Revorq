@@ -30,6 +30,8 @@ public class UserBuildingAccessRepository : IUserBuildingAccessRepository
             .Where(a => a.UserId == userId && a.Building.Status == EntityStatus.Active)
             .Include(a => a.Building)
                 .ThenInclude(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
+            .Include(a => a.Building)
+                .ThenInclude(b => b.Files)
             .Select(a => a.Building)
             .AsNoTracking()
             .ToListAsync();

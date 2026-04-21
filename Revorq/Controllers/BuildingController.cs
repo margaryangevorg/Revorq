@@ -54,7 +54,7 @@ public class BuildingController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> Create([FromBody] BuildingRequest request)
+    public async Task<IActionResult> Create([FromForm] BuildingRequest request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();

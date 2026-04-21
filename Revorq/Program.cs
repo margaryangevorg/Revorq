@@ -99,6 +99,9 @@ builder.Services.AddScoped<IInvitationTokenRepository, InvitationTokenRepository
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+// Storage
+builder.Services.AddSingleton<IStorageService, GoogleStorageService>();
+
 // Services
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

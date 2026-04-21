@@ -18,4 +18,5 @@ public class Building
 
     public ICollection<Elevator> Elevators { get; set; } = [];
     public ICollection<UserBuildingAccess> UserAccesses { get; set; } = [];
+    public ICollection<BuildingFile> Files { get; set; } = [];
 }

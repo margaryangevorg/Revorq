@@ -1,6 +1,7 @@
 using Revorq.API.Models;
 using Revorq.API.Models.BuildingModels;
 using Revorq.API.Services.Interfaces;
+using Revorq.DAL.Context;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
@@ -13,17 +14,23 @@ public class BuildingService : IBuildingService
     private readonly IBuildingRepository _repository;
     private readonly IElevatorRepository _elevatorRepository;
     private readonly IUserBuildingAccessRepository _accessRepository;
+    private readonly IStorageService _storageService;
+    private readonly AppDbContext _context;
     private readonly UserManager<AppUser> _userManager;
 
     public BuildingService(
         IBuildingRepository repository,
         IElevatorRepository elevatorRepository,
         IUserBuildingAccessRepository accessRepository,
+        IStorageService storageService,
+        AppDbContext context,
         UserManager<AppUser> userManager)
     {
         _repository = repository;
         _elevatorRepository = elevatorRepository;
         _accessRepository = accessRepository;
+        _storageService = storageService;
+        _context = context;
         _userManager = userManager;
     }
 
@@ -40,7 +47,15 @@ public class BuildingService : IBuildingService
                 BuildingType = b.BuildingType,
                 Latitude = b.Latitude,
                 Longitude = b.Longitude,
-                ElevatorCount = b.Elevators.Count
+                ElevatorCount = b.Elevators.Count,
+                Files = b.Files.Select(f => new BuildingFileResponse
+                {
+                    Id = f.Id,
+                    Url = f.Url,
+                    OriginalName = f.OriginalName,
+                    ContentType = f.ContentType,
+                    UploadedAt = f.UploadedAt
+                }).ToList()
             });
     }
 
@@ -92,6 +107,22 @@ public class BuildingService : IBuildingService
 
         await _repository.AddAsync(building);
         await _repository.SaveChangesAsync();
+
+        if (request.Files.Count > 0)
+        {
+            foreach (var file in request.Files)
+            {
+                var url = await _storageService.UploadAsync(building.Id, file);
+                await _context.BuildingFiles.AddAsync(new BuildingFile
+                {
+                    BuildingId = building.Id,
+                    Url = url,
+                    OriginalName = file.FileName,
+                    ContentType = file.ContentType
+                });
+            }
+            await _context.SaveChangesAsync();
+        }
 
         var admins = (await _userManager.GetUsersInRoleAsync(nameof(Role.Admin)))
             .Where(u => u.CompanyId == companyId.Value);
@@ -163,6 +194,14 @@ public class BuildingService : IBuildingService
             Id = el.Id,
             NumberInProject = el.NumberInProject,
             SerialNumber = el.SerialNumber
+        }).ToList(),
+        Files = building.Files.Select(f => new BuildingFileResponse
+        {
+            Id = f.Id,
+            Url = f.Url,
+            OriginalName = f.OriginalName,
+            ContentType = f.ContentType,
+            UploadedAt = f.UploadedAt
         }).ToList()
     };
 }
