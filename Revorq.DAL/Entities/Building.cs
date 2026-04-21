@@ -16,7 +16,8 @@ public class Building
     public int CompanyId { get; set; }
     public Company Company { get; set; } = null!;
 
+    public List<string> FileUrls { get; set; } = [];
+
     public ICollection<Elevator> Elevators { get; set; } = [];
     public ICollection<UserBuildingAccess> UserAccesses { get; set; } = [];
-    public ICollection<BuildingFile> Files { get; set; } = [];
 }

@@ -11,5 +11,5 @@ public class BuildingWithElevatorsResponse
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public List<ElevatorSummary> Elevators { get; set; } = new();
-    public List<BuildingFileResponse> Files { get; set; } = new();
+    public List<string> FileUrls { get; set; } = [];
 }

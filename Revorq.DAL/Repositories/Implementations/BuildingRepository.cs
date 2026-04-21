@@ -14,7 +14,7 @@ public class BuildingRepository : Repository<Building>, IBuildingRepository
     {
         var query = _context.Buildings
             .Include(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
-            .Include(b => b.Files)
+
             .Where(b => b.CompanyId == companyId && b.Status == EntityStatus.Active)
             .AsQueryable();
 
@@ -28,7 +28,7 @@ public class BuildingRepository : Repository<Building>, IBuildingRepository
     {
         return await _context.Buildings
             .Include(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
-            .Include(b => b.Files)
+
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == buildingId && b.CompanyId == companyId && b.Status == EntityStatus.Active);
     }
@@ -37,7 +37,7 @@ public class BuildingRepository : Repository<Building>, IBuildingRepository
     {
         return await _context.Buildings
             .Include(b => b.Elevators.Where(e => e.Status == EntityStatus.Active))
-            .Include(b => b.Files)
+
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Name.ToLower() == name.ToLower() && b.CompanyId == companyId && b.Status == EntityStatus.Active);
     }

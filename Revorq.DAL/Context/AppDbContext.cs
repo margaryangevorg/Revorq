@@ -18,7 +18,6 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<MaintenanceOrder> MaintenanceOrders => Set<MaintenanceOrder>();
     public DbSet<MaintenanceReport> MaintenanceReports => Set<MaintenanceReport>();
     public DbSet<UserBuildingAccess> UserBuildingAccesses => Set<UserBuildingAccess>();
-    public DbSet<BuildingFile> BuildingFiles => Set<BuildingFile>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -85,6 +84,12 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             e.Property(b => b.Address).IsRequired().HasMaxLength(300);
             e.HasAlternateKey(b => b.Address);
 
+            e.Property(b => b.FileUrls)
+             .HasConversion(
+                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                 v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
+             .HasColumnType("text");
+
             e.HasOne(b => b.Company)
              .WithMany(c => c.Buildings)
              .HasForeignKey(b => b.CompanyId)
@@ -148,20 +153,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .OnDelete(DeleteBehavior.Cascade);
         });
 
-        builder.Entity<BuildingFile>(e =>
-        {
-            e.HasKey(f => f.Id);
-            e.Property(f => f.Url).IsRequired();
-            e.Property(f => f.OriginalName).IsRequired().HasMaxLength(255);
-            e.Property(f => f.ContentType).IsRequired().HasMaxLength(100);
-
-            e.HasOne(f => f.Building)
-             .WithMany(b => b.Files)
-             .HasForeignKey(f => f.BuildingId)
-             .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        builder.Entity<MaintenanceReport>(e =>
+builder.Entity<MaintenanceReport>(e =>
         {
             e.HasKey(r => r.OrderId);
 
