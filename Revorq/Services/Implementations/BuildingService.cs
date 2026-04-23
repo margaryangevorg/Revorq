@@ -132,6 +132,12 @@ public class BuildingService : IBuildingService
         building.Latitude = request.Latitude;
         building.Longitude = request.Longitude;
 
+        if (request.Files.Count > 0)
+        {
+            var uploadTasks = request.Files.Select(f => _storageService.UploadBuildingFileAsync(building.Id, f));
+            building.FileUrls.AddRange(await Task.WhenAll(uploadTasks));
+        }
+
         _repository.Update(building);
         await _repository.SaveChangesAsync();
 
