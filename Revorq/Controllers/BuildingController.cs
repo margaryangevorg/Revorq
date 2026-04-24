@@ -68,7 +68,7 @@ public class BuildingController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> Update(int id, [FromForm] BuildingUpdateRequest request)
+    public async Task<IActionResult> Update(int id, [FromBody] BuildingUpdateRequest request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
