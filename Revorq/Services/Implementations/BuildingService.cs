@@ -116,7 +116,7 @@ public class BuildingService : IBuildingService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> UpdateAsync(int id, BuildingRequest request, int userId)
+    public async Task<ServiceResult<bool>> UpdateAsync(int id, BuildingUpdateRequest request, int userId)
     {
         var companyId = await GetCompanyIdAsync(userId);
         if (companyId is null)
@@ -132,11 +132,45 @@ public class BuildingService : IBuildingService
         building.Latitude = request.Latitude;
         building.Longitude = request.Longitude;
 
-        if (request.Files.Count > 0)
-        {
-            var uploadTasks = request.Files.Select(f => _storageService.UploadBuildingFileAsync(building.Id, f));
-            building.FileUrls.AddRange(await Task.WhenAll(uploadTasks));
-        }
+        _repository.Update(building);
+        await _repository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
+    public async Task<ServiceResult<bool>> AddFilesAsync(int buildingId, List<IFormFile> files, int userId)
+    {
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var building = await _repository.GetWithElevatorsAsync(buildingId, companyId.Value);
+        if (building is null)
+            return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
+
+        var uploadTasks = files.Select(f => _storageService.UploadBuildingFileAsync(buildingId, f));
+        building.FileUrls.AddRange(await Task.WhenAll(uploadTasks));
+
+        _repository.Update(building);
+        await _repository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
+    public async Task<ServiceResult<bool>> DeleteFilesAsync(int buildingId, List<string> fileUrls, int userId)
+    {
+        var companyId = await GetCompanyIdAsync(userId);
+        if (companyId is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var building = await _repository.GetWithElevatorsAsync(buildingId, companyId.Value);
+        if (building is null)
+            return ServiceResult<bool>.NotFound($"Building {buildingId} not found.");
+
+        var deleteTasks = fileUrls.Select(url => _storageService.DeleteFileAsync(url));
+        await Task.WhenAll(deleteTasks);
+
+        building.FileUrls.RemoveAll(url => fileUrls.Contains(url));
 
         _repository.Update(building);
         await _repository.SaveChangesAsync();

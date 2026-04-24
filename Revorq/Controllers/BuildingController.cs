@@ -68,12 +68,36 @@ public class BuildingController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> Update(int id, [FromForm] BuildingRequest request)
+    public async Task<IActionResult> Update(int id, [FromForm] BuildingUpdateRequest request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
         var result = await _buildingService.UpdateAsync(id, request, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        return Ok();
+    }
+
+    [HttpPost("{buildingId}/files")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    public async Task<IActionResult> AddBuildingFiles(int buildingId, [FromForm] List<IFormFile> files)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _buildingService.AddFilesAsync(buildingId, files, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        return Ok();
+    }
+
+    [HttpDelete("{buildingId}/files")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    public async Task<IActionResult> DeleteBuildingFiles(int buildingId, [FromBody] List<string> fileUrls)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _buildingService.DeleteFilesAsync(buildingId, fileUrls, userId.Value);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok();
     }
