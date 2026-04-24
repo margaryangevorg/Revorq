@@ -90,6 +90,18 @@ public class MaintenanceController : ControllerBase
         return Ok(result.Data);
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateOrder(int id, [FromBody] UpdateOrderRequest request)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.UpdateOrderAsync(id, request, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return Forbid();
+        return Ok();
+    }
+
     [HttpPut("{orderId}/assign")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> AssignOrder(int orderId, int engineerId)
@@ -97,6 +109,19 @@ public class MaintenanceController : ControllerBase
         var result = await _maintenanceService.AssignOrderAsync(orderId, engineerId);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+        return Ok();
+    }
+
+    [HttpPut("{id}/report")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> UpdateReport(int id, [FromBody] UpdateReportRequest request)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.UpdateReportAsync(id, request, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return Forbid();
         return Ok();
     }
 

@@ -111,6 +111,32 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
+    public async Task<ServiceResult<bool>> UpdateOrderAsync(int orderId, UpdateOrderRequest request, int userId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var isAdminOrManager = roles.Contains(nameof(Role.Admin)) || roles.Contains(nameof(Role.Manager));
+
+        if (order.ReporterId != userId && !isAdminOrManager)
+            return ServiceResult<bool>.Error("You are not allowed to edit this order.");
+
+        order.MaintenanceType = request.MaintenanceType;
+        order.ScheduledDate = request.ScheduledDate;
+        order.ShortDescription = request.ShortDescription;
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
     public async Task<ServiceResult<bool>> CreateReportAsync(int orderId, CreateReportRequest request)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(orderId);
@@ -162,6 +188,42 @@ public class MaintenanceService : IMaintenanceService
 
         if (request.Status.HasValue)
             order.Status = request.Status.Value;
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
+    public async Task<ServiceResult<bool>> UpdateReportAsync(int orderId, UpdateReportRequest request, int userId)
+    {
+        var order = await _orderRepository.GetByIdWithReportAsync(orderId);
+        if (order is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+
+        if (order.Report is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} has no report.");
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Contains(nameof(Role.Admin)) && !roles.Contains(nameof(Role.Manager)))
+            return ServiceResult<bool>.Error("You are not allowed to edit this report.");
+
+        var report = order.Report;
+        report.JobStartedDate = request.JobStartedDate;
+        report.CompletedDate = request.CompletedDate;
+        report.IssueDetected = request.IssueDetected;
+        report.VisualCheckDone = request.VisualCheckDone;
+        report.AdjustmentDone = request.AdjustmentDone;
+        report.CleaningDone = request.CleaningDone;
+        report.ShortDescription = request.ShortDescription;
+
+        if (request.Status.HasValue)
+            order.Status = request.Status.Value;
+
+        _reportRepository.Update(report);
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 
@@ -278,6 +340,8 @@ public class MaintenanceService : IMaintenanceService
         Status = o.Status,
         ShortDescription = o.ShortDescription,
         ImageUrls = o.ImageUrls,
+        CreatedDate = o.CreatedDate,
+        UpdatedDate = o.UpdatedDate,
         Report = o.Report is null ? null : new MaintenanceReportResponse
         {
             JobStartedDate = o.Report.JobStartedDate,
@@ -287,7 +351,9 @@ public class MaintenanceService : IMaintenanceService
             AdjustmentDone = o.Report.AdjustmentDone,
             CleaningDone = o.Report.CleaningDone,
             ShortDescription = o.Report.ShortDescription,
-            ImageUrls = o.Report.ImageUrls
+            ImageUrls = o.Report.ImageUrls,
+            CreatedDate = o.Report.CreatedDate,
+            UpdatedDate = o.Report.UpdatedDate
         }
     };
 }

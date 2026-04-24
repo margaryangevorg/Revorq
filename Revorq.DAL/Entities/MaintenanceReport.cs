@@ -1,6 +1,6 @@
 namespace Revorq.DAL.Entities;
 
-public class MaintenanceReport
+public class MaintenanceReport : IAuditable
 {
     public int OrderId { get; set; }
     public MaintenanceOrder MaintenanceOrder { get; set; } = null!;
@@ -15,4 +15,7 @@ public class MaintenanceReport
 
     public string? ShortDescription { get; set; }
     public List<string> ImageUrls { get; set; } = [];
+
+    public DateTime CreatedDate { get; set; }
+    public DateTime UpdatedDate { get; set; }
 }

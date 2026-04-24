@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Revorq.DAL.Context;
@@ -11,9 +12,11 @@ using Revorq.DAL.Context;
 namespace Revorq.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260424190321_FixImageUrlsDefaultValue")]
+    partial class FixImageUrlsDefaultValue
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -430,9 +433,6 @@ namespace Revorq.DAL.Migrations
                     b.Property<int?>("AssignedEngineerId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<int>("ElevatorId")
                         .HasColumnType("integer");
 
@@ -457,9 +457,6 @@ namespace Revorq.DAL.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedDate")
-                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -486,9 +483,6 @@ namespace Revorq.DAL.Migrations
                     b.Property<DateTime?>("CompletedDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<string>("ImageUrls")
                         .IsRequired()
                         .HasColumnType("text");
@@ -502,9 +496,6 @@ namespace Revorq.DAL.Migrations
                     b.Property<string>("ShortDescription")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime>("UpdatedDate")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("VisualCheckDone")
                         .HasColumnType("boolean");

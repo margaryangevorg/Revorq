@@ -1,6 +1,8 @@
+using Revorq.DAL.Enums;
+
 namespace Revorq.API.Models.MaintenanceOrderModels;
 
-public class MaintenanceReportResponse
+public class UpdateReportRequest
 {
     public DateTime? JobStartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
@@ -9,7 +11,5 @@ public class MaintenanceReportResponse
     public bool AdjustmentDone { get; set; }
     public bool CleaningDone { get; set; }
     public string? ShortDescription { get; set; }
-    public List<string> ImageUrls { get; set; } = [];
-    public DateTime CreatedDate { get; set; }
-    public DateTime UpdatedDate { get; set; }
+    public OrderStatus? Status { get; set; }
 }

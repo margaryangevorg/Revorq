@@ -2,7 +2,7 @@ using Revorq.DAL.Enums;
 
 namespace Revorq.DAL.Entities;
 
-public class MaintenanceOrder
+public class MaintenanceOrder : IAuditable
 {
     public int Id { get; set; }
 
@@ -21,6 +21,9 @@ public class MaintenanceOrder
 
     public string? ShortDescription { get; set; }
     public List<string> ImageUrls { get; set; } = [];
+
+    public DateTime CreatedDate { get; set; }
+    public DateTime UpdatedDate { get; set; }
 
     public MaintenanceReport? Report { get; set; }
 }

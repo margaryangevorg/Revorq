@@ -20,5 +20,7 @@ public class MaintenanceOrderResponse
     public OrderStatus Status { get; set; }
     public string? ShortDescription { get; set; }
     public List<string> ImageUrls { get; set; } = [];
+    public DateTime CreatedDate { get; set; }
+    public DateTime UpdatedDate { get; set; }
     public MaintenanceReportResponse? Report { get; set; }
 }
