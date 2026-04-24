@@ -121,7 +121,7 @@ public class CompanyService : ICompanyService
 
         await _userManager.AddToRoleAsync(user, invite.Role.ToString());
 
-        if (invite.Role == Role.Admin)
+        if (invite.Role != Role.Customer)
         {
             var buildings = await _buildingRepository.GetAllAsync(invite.CompanyId, null);
             foreach (var building in buildings)
