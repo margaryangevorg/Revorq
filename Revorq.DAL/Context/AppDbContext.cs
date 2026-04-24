@@ -129,6 +129,12 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .HasForeignKey(o => o.ElevatorId)
              .OnDelete(DeleteBehavior.Restrict);
 
+            e.Property(o => o.ImageUrls)
+             .HasConversion(
+                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                 v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
+             .HasColumnType("text");
+
             e.HasOne(o => o.AssignedEngineer)
              .WithMany(u => u.AssignedOrders)
              .HasForeignKey(o => o.AssignedEngineerId)

@@ -74,6 +74,14 @@ public class MaintenanceService : IMaintenanceService
         await _orderRepository.AddAsync(order);
         await _orderRepository.SaveChangesAsync();
 
+        if (request.Images.Count > 0)
+        {
+            var uploadTasks = request.Images.Select(img => _storageService.UploadMaintenanceOrderImageAsync(order.Id, img));
+            order.ImageUrls.AddRange(await Task.WhenAll(uploadTasks));
+            _orderRepository.Update(order);
+            await _orderRepository.SaveChangesAsync();
+        }
+
         return ServiceResult<int>.Ok(order.Id);
     }
 
@@ -269,6 +277,7 @@ public class MaintenanceService : IMaintenanceService
         ScheduledDate = o.ScheduledDate,
         Status = o.Status,
         ShortDescription = o.ShortDescription,
+        ImageUrls = o.ImageUrls,
         Report = o.Report is null ? null : new MaintenanceReportResponse
         {
             JobStartedDate = o.Report.JobStartedDate,

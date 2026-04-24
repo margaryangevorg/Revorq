@@ -30,38 +30,29 @@ public class GoogleStorageService : IStorageService
         _storageClient = StorageClient.Create(credential);
     }
 
-    public async Task<string> UploadBuildingFileAsync(int buildingId, IFormFile file)
+    public Task<string> UploadBuildingFileAsync(int buildingId, IFormFile file)
     {
         var folder = file.ContentType.StartsWith("image/") ? "images" : "documents";
         var ext = Path.GetExtension(file.FileName);
-        var objectName = $"buildings/{buildingId}/{folder}/{Guid.NewGuid()}{ext}";
-
-        await using var stream = file.OpenReadStream();
-        await _storageClient.UploadObjectAsync(_bucketName, objectName, file.ContentType, stream);
-
-        return $"https://storage.googleapis.com/{_bucketName}/{objectName}";
+        return UploadAsync($"buildings/{buildingId}/{folder}/{Guid.NewGuid()}{ext}", file);
     }
 
-    public async Task<string> UploadCompanyLogoAsync(int companyId, IFormFile file)
+    public Task<string> UploadCompanyLogoAsync(int companyId, IFormFile file)
     {
         var ext = Path.GetExtension(file.FileName);
-        var objectName = $"companies/{companyId}/logo{ext}";
-
-        await using var stream = file.OpenReadStream();
-        await _storageClient.UploadObjectAsync(_bucketName, objectName, file.ContentType, stream);
-
-        return $"https://storage.googleapis.com/{_bucketName}/{objectName}";
+        return UploadAsync($"companies/{companyId}/logo{ext}", file);
     }
 
-    public async Task<string> UploadMaintenanceReportImageAsync(int orderId, IFormFile file)
+    public Task<string> UploadMaintenanceOrderImageAsync(int orderId, IFormFile file)
     {
         var ext = Path.GetExtension(file.FileName);
-        var objectName = $"maintenanceReport/{orderId}/images/{Guid.NewGuid()}{ext}";
+        return UploadAsync($"maintenanceOrders/{orderId}/images/{Guid.NewGuid()}{ext}", file);
+    }
 
-        await using var stream = file.OpenReadStream();
-        await _storageClient.UploadObjectAsync(_bucketName, objectName, file.ContentType, stream);
-
-        return $"https://storage.googleapis.com/{_bucketName}/{objectName}";
+    public Task<string> UploadMaintenanceReportImageAsync(int orderId, IFormFile file)
+    {
+        var ext = Path.GetExtension(file.FileName);
+        return UploadAsync($"maintenanceReports/{orderId}/images/{Guid.NewGuid()}{ext}", file);
     }
 
     public async Task DeleteFileAsync(string fileUrl)
@@ -69,5 +60,12 @@ public class GoogleStorageService : IStorageService
         var prefix = $"https://storage.googleapis.com/{_bucketName}/";
         var objectName = fileUrl[prefix.Length..];
         await _storageClient.DeleteObjectAsync(_bucketName, objectName);
+    }
+
+    private async Task<string> UploadAsync(string objectName, IFormFile file)
+    {
+        await using var stream = file.OpenReadStream();
+        await _storageClient.UploadObjectAsync(_bucketName, objectName, file.ContentType, stream);
+        return $"https://storage.googleapis.com/{_bucketName}/{objectName}";
     }
 }

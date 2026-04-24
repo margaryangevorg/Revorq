@@ -9,4 +9,5 @@ public class CreateOrderRequest
     public MaintenanceType MaintenanceType { get; set; }
     public DateTime ScheduledDate { get; set; }
     public string? ShortDescription { get; set; }
+    public List<IFormFile> Images { get; set; } = [];
 }

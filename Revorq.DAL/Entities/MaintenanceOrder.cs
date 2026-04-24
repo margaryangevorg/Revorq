@@ -20,6 +20,7 @@ public class MaintenanceOrder
     public OrderStatus Status { get; set; } = OrderStatus.Open;
 
     public string? ShortDescription { get; set; }
+    public List<string> ImageUrls { get; set; } = [];
 
     public MaintenanceReport? Report { get; set; }
 }
