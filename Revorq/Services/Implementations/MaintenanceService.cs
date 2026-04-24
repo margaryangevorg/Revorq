@@ -137,6 +137,56 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
+    public async Task<ServiceResult<bool>> AddOrderImagesAsync(int orderId, List<IFormFile> images, int userId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var isAdminOrManager = roles.Contains(nameof(Role.Admin)) || roles.Contains(nameof(Role.Manager));
+
+        if (order.ReporterId != userId && !isAdminOrManager)
+            return ServiceResult<bool>.Error("You are not allowed to add images to this order.");
+
+        var uploadTasks = images.Select(img => _storageService.UploadMaintenanceOrderImageAsync(orderId, img));
+        order.ImageUrls.AddRange(await Task.WhenAll(uploadTasks));
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
+    public async Task<ServiceResult<bool>> DeleteOrderImagesAsync(int orderId, List<string> imageUrls, int userId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var isAdminOrManager = roles.Contains(nameof(Role.Admin)) || roles.Contains(nameof(Role.Manager));
+
+        if (order.ReporterId != userId && !isAdminOrManager)
+            return ServiceResult<bool>.Error("You are not allowed to delete images from this order.");
+
+        await Task.WhenAll(imageUrls.Select(url => _storageService.DeleteFileAsync(url)));
+        order.ImageUrls.RemoveAll(url => imageUrls.Contains(url));
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
     public async Task<ServiceResult<bool>> CreateReportAsync(int orderId, CreateReportRequest request)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(orderId);
@@ -226,6 +276,58 @@ public class MaintenanceService : IMaintenanceService
         _reportRepository.Update(report);
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
+    public async Task<ServiceResult<bool>> AddReportImagesAsync(int orderId, List<IFormFile> images, int userId)
+    {
+        var order = await _orderRepository.GetByIdWithReportAsync(orderId);
+        if (order is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+
+        if (order.Report is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} has no report.");
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Contains(nameof(Role.Admin)) && !roles.Contains(nameof(Role.Manager)))
+            return ServiceResult<bool>.Error("You are not allowed to add images to this report.");
+
+        var uploadTasks = images.Select(img => _storageService.UploadMaintenanceReportImageAsync(orderId, img));
+        order.Report.ImageUrls.AddRange(await Task.WhenAll(uploadTasks));
+
+        _reportRepository.Update(order.Report);
+        await _reportRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+
+    public async Task<ServiceResult<bool>> DeleteReportImagesAsync(int orderId, List<string> imageUrls, int userId)
+    {
+        var order = await _orderRepository.GetByIdWithReportAsync(orderId);
+        if (order is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+
+        if (order.Report is null)
+            return ServiceResult<bool>.NotFound($"Order {orderId} has no report.");
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Contains(nameof(Role.Admin)) && !roles.Contains(nameof(Role.Manager)))
+            return ServiceResult<bool>.Error("You are not allowed to delete images from this report.");
+
+        await Task.WhenAll(imageUrls.Select(url => _storageService.DeleteFileAsync(url)));
+        order.Report.ImageUrls.RemoveAll(url => imageUrls.Contains(url));
+
+        _reportRepository.Update(order.Report);
+        await _reportRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);
     }

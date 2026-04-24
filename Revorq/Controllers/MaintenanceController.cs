@@ -102,6 +102,56 @@ public class MaintenanceController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("{id}/order/images")]
+    public async Task<IActionResult> AddOrderImages(int id, [FromForm] List<IFormFile> images)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.AddOrderImagesAsync(id, images, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return Forbid();
+        return Ok();
+    }
+
+    [HttpDelete("{id}/order/images")]
+    public async Task<IActionResult> DeleteOrderImages(int id, [FromBody] List<string> imageUrls)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.DeleteOrderImagesAsync(id, imageUrls, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return Forbid();
+        return Ok();
+    }
+
+    [HttpPost("{id}/report/images")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> AddReportImages(int id, [FromForm] List<IFormFile> images)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.AddReportImagesAsync(id, images, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return Forbid();
+        return Ok();
+    }
+
+    [HttpDelete("{id}/report/images")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> DeleteReportImages(int id, [FromBody] List<string> imageUrls)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.DeleteReportImagesAsync(id, imageUrls, userId.Value);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+        if (!result.IsSuccess) return Forbid();
+        return Ok();
+    }
+
     [HttpPut("{orderId}/assign")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> AssignOrder(int orderId, int engineerId)
@@ -135,18 +185,6 @@ public class MaintenanceController : ControllerBase
         return Ok();
     }
 
-    private int? GetUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(claim, out var id) ? id : null;
-    }
-
-    private int? GetCompanyId()
-    {
-        var claim = User.FindFirstValue("CompanyId");
-        return int.TryParse(claim, out var id) ? id : null;
-    }
-
     [HttpDelete("{id}")]
     [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> Delete(int id)
@@ -154,5 +192,11 @@ public class MaintenanceController : ControllerBase
         var result = await _maintenanceService.DeleteAsync(id);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         return Ok();
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(claim, out var id) ? id : null;
     }
 }
