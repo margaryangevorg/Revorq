@@ -56,6 +56,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
             .Include(o => o.AssignedEngineer)
+            .Include(o => o.Reporter)
             .Include(o => o.Report)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
@@ -70,6 +71,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
             .Include(o => o.AssignedEngineer)
+            .Include(o => o.Reporter)
             .Include(o => o.Report)
             .Where(o => o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month
@@ -88,6 +90,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
+            .Include(o => o.Reporter)
             .Include(o => o.Report)
             .Where(o => o.ScheduledDate <= untilDate)
             .AsNoTracking()
@@ -99,6 +102,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)
                 .ThenInclude(el => el.Building)
+            .Include(o => o.Reporter)
             .Include(o => o.Report)
             .Where(o => o.MaintenanceType == MaintenanceType.Unscheduled && o.Status != OrderStatus.Done)
             .AsNoTracking()

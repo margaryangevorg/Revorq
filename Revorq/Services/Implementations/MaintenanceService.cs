@@ -261,6 +261,10 @@ public class MaintenanceService : IMaintenanceService
         AssignedEngineerName = o.AssignedEngineer is null
             ? string.Empty
             : $"{o.AssignedEngineer.FirstName} {o.AssignedEngineer.LastName}",
+        ReporterId = o.ReporterId,
+        ReporterName = o.Reporter is null
+            ? string.Empty
+            : $"{o.Reporter.FirstName} {o.Reporter.LastName}",
         MaintenanceType = o.MaintenanceType.ToString(),
         ScheduledDate = o.ScheduledDate,
         Status = o.Status,

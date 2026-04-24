@@ -135,6 +135,11 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .IsRequired(false)
              .OnDelete(DeleteBehavior.Restrict);
 
+            e.HasOne(o => o.Reporter)
+             .WithMany()
+             .HasForeignKey(o => o.ReporterId)
+             .OnDelete(DeleteBehavior.Restrict);
+
             e.HasIndex(o => new { o.AssignedEngineerId, o.ScheduledDate });
         });
 

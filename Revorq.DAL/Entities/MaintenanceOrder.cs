@@ -12,6 +12,9 @@ public class MaintenanceOrder
     public int? AssignedEngineerId { get; set; }
     public AppUser? AssignedEngineer { get; set; }
 
+    public int ReporterId { get; set; }
+    public AppUser Reporter { get; set; } = null!;
+
     public MaintenanceType MaintenanceType { get; set; }
     public DateTime ScheduledDate { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Open;

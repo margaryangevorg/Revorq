@@ -13,6 +13,8 @@ public class MaintenanceOrderResponse
     public double? BuildingLongitude { get; set; }
     public int? AssignedEngineerId { get; set; }
     public string? AssignedEngineerName { get; set; }
+    public int ReporterId { get; set; }
+    public string ReporterName { get; set; } = string.Empty;
     public string MaintenanceType { get; set; } = string.Empty;
     public DateTime ScheduledDate { get; set; }
     public OrderStatus Status { get; set; }
