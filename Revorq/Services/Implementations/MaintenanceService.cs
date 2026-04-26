@@ -55,7 +55,7 @@ public class MaintenanceService : IMaintenanceService
         return orders.Select(MapToResponse);
     }
 
-    public async Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request, int reporterId)
     {
         var elevator = await _elevatorRepository.GetByIdAsync(request.ElevatorId);
         if (elevator is null)
@@ -68,7 +68,8 @@ public class MaintenanceService : IMaintenanceService
             MaintenanceType = request.MaintenanceType,
             ScheduledDate = request.ScheduledDate,
             ShortDescription = request.ShortDescription,
-            Status = OrderStatus.Open
+            Status = OrderStatus.Open,
+            ReporterId = reporterId
         };
 
         await _orderRepository.AddAsync(order);

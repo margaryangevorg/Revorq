@@ -75,7 +75,10 @@ public class MaintenanceController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromForm] CreateOrderRequest request)
     {
-        var result = await _maintenanceService.CreateOrderAsync(request);
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await _maintenanceService.CreateOrderAsync(request, userId.Value);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         return Ok();
     }
