@@ -12,12 +12,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger with JWT support
