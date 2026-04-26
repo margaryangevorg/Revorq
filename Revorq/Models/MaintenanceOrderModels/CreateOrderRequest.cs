@@ -1,20 +1,20 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Revorq.DAL.Enums;
 
 namespace Revorq.API.Models.MaintenanceOrderModels;
 
 public class CreateOrderRequest
 {
-    [JsonPropertyName("elevatorId")]
+    [FromForm(Name = "elevatorId")]
     public int ElevatorId { get; set; }
-    [JsonPropertyName("assignedEngineerId")]
+    [FromForm(Name = "assignedEngineerId")]
     public int? AssignedEngineerId { get; set; }
-    [JsonPropertyName("maintenanceType")]
+    [FromForm(Name = "maintenanceType")]
     public MaintenanceType MaintenanceType { get; set; }
-    [JsonPropertyName("scheduledDate")]
+    [FromForm(Name = "scheduledDate")]
     public DateTime ScheduledDate { get; set; }
-    [JsonPropertyName("shortDescription")]
+    [FromForm(Name = "shortDescription")]
     public string? ShortDescription { get; set; }
-    [JsonPropertyName("images")]
+    [FromForm(Name = "images")]
     public List<IFormFile> Images { get; set; } = [];
 }

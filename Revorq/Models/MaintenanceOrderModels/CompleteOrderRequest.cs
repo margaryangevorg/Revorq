@@ -1,26 +1,26 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Revorq.DAL.Enums;
 
 namespace Revorq.API.Models.MaintenanceOrderModels;
 
 public class CreateReportRequest
 {
-    [JsonPropertyName("jobStartedDate")]
+    [FromForm(Name = "jobStartedDate")]
     public DateTime? JobStartedDate { get; set; }
-    [JsonPropertyName("completedDate")]
+    [FromForm(Name = "completedDate")]
     public DateTime? CompletedDate { get; set; }
-    [JsonPropertyName("issueDetected")]
+    [FromForm(Name = "issueDetected")]
     public bool IssueDetected { get; set; }
-    [JsonPropertyName("visualCheckDone")]
+    [FromForm(Name = "visualCheckDone")]
     public bool VisualCheckDone { get; set; }
-    [JsonPropertyName("adjustmentDone")]
+    [FromForm(Name = "adjustmentDone")]
     public bool AdjustmentDone { get; set; }
-    [JsonPropertyName("cleaningDone")]
+    [FromForm(Name = "cleaningDone")]
     public bool CleaningDone { get; set; }
-    [JsonPropertyName("shortDescription")]
+    [FromForm(Name = "shortDescription")]
     public string? ShortDescription { get; set; }
-    [JsonPropertyName("images")]
+    [FromForm(Name = "images")]
     public List<IFormFile>? Images { get; set; }
-    [JsonPropertyName("status")]
+    [FromForm(Name = "status")]
     public OrderStatus? Status { get; set; }
 }

@@ -1,20 +1,20 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Revorq.DAL.Enums;
 
 namespace Revorq.API.Models.BuildingModels;
 
 public class BuildingRequest
 {
-    [JsonPropertyName("name")]
+    [FromForm(Name = "name")]
     public string Name { get; set; } = string.Empty;
-    [JsonPropertyName("address")]
+    [FromForm(Name = "address")]
     public string Address { get; set; } = string.Empty;
-    [JsonPropertyName("buildingType")]
+    [FromForm(Name = "buildingType")]
     public BuildingType BuildingType { get; set; }
-    [JsonPropertyName("latitude")]
+    [FromForm(Name = "latitude")]
     public double? Latitude { get; set; }
-    [JsonPropertyName("longitude")]
+    [FromForm(Name = "longitude")]
     public double? Longitude { get; set; }
-    [JsonPropertyName("files")]
+    [FromForm(Name = "files")]
     public List<IFormFile> Files { get; set; } = [];
 }
