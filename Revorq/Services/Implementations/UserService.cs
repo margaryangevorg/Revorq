@@ -115,4 +115,16 @@ public class UserService : IUserService
 
         return ServiceResult<bool>.Ok(true);
     }
+
+    public async Task<ServiceResult<bool>> DeleteUserAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user is null)
+            return ServiceResult<bool>.NotFound("User not found.");
+
+        user.Status = EntityStatus.Deleted;
+        await _userRepository.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
 }

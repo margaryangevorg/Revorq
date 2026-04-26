@@ -1,5 +1,6 @@
 using Revorq.API.Models.AuthModels;
 using Revorq.API.Services.Interfaces;
+using Revorq.DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -54,6 +55,16 @@ public class UserController : ControllerBase
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
 
         return Ok();
+    }
+
+    [HttpDelete("{userId}")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    public async Task<IActionResult> DeleteUser(int userId)
+    {
+        var result = await _userService.DeleteUserAsync(userId);
+        if (result.IsNotFound) return NotFound(result.ErrorMessage);
+
+        return NoContent();
     }
 
 }

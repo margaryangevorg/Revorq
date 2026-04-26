@@ -18,7 +18,7 @@ public class UserBuildingAccessRepository : IUserBuildingAccessRepository
     public async Task<IEnumerable<AppUser>> GetUsersWithAccessAsync(int buildingId)
     {
         return await _context.UserBuildingAccesses
-            .Where(a => a.BuildingId == buildingId)
+            .Where(a => a.BuildingId == buildingId && a.User.Status == EntityStatus.Active)
             .Select(a => a.User)
             .AsNoTracking()
             .ToListAsync();

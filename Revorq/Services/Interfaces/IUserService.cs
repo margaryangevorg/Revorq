@@ -10,4 +10,5 @@ public interface IUserService
     Task<ServiceResult<IEnumerable<UserResponse>>> GetCompanyUsersAsync(int companyId, Role? role);
     Task<ServiceResult<bool>> EditProfileAsync(int userId, EditProfileRequest request);
     Task<ServiceResult<bool>> ChangePasswordAsync(int userId, ChangePasswordRequest request);
+    Task<ServiceResult<bool>> DeleteUserAsync(int userId);
 }

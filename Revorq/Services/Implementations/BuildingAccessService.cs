@@ -2,9 +2,10 @@ using Revorq.API.Models;
 using Revorq.API.Models.AuthModels;
 using Revorq.API.Models.BuildingModels;
 using Revorq.API.Services.Interfaces;
+using Revorq.DAL.Entities;
+using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using Revorq.DAL.Entities;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -31,7 +32,7 @@ public class BuildingAccessService : IBuildingAccessService
             return ServiceResult<bool>.NotFound("Requesting user not found.");
 
         var targetUser = await _userManager.FindByIdAsync(targetUserId.ToString());
-        if (targetUser is null || targetUser.CompanyId != companyId.Value)
+        if (targetUser is null || targetUser.CompanyId != companyId.Value || targetUser.Status != EntityStatus.Active)
             return ServiceResult<bool>.NotFound($"User {targetUserId} not found.");
 
         foreach (var buildingId in buildingIds)
@@ -108,7 +109,7 @@ public class BuildingAccessService : IBuildingAccessService
             return ServiceResult<IEnumerable<BuildingResponse>>.NotFound("Requesting user not found.");
 
         var targetUser = await _userManager.FindByIdAsync(targetUserId.ToString());
-        if (targetUser is null || targetUser.CompanyId != companyId.Value)
+        if (targetUser is null || targetUser.CompanyId != companyId.Value || targetUser.Status != EntityStatus.Active)
             return ServiceResult<IEnumerable<BuildingResponse>>.NotFound($"User {targetUserId} not found.");
 
         var buildings = await _accessRepository.GetBuildingsForUserAsync(targetUserId);
@@ -130,6 +131,6 @@ public class BuildingAccessService : IBuildingAccessService
     private async Task<int?> GetCompanyIdAsync(int userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        return user?.CompanyId;
+        return user?.Status == EntityStatus.Active ? user.CompanyId : null;
     }
 }

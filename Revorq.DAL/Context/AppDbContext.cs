@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Revorq.DAL.Enums;
 
 namespace Revorq.DAL.Context;
 
@@ -66,6 +67,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         builder.Entity<AppUser>(e =>
         {
             e.Property(u => u.CompanyId).IsRequired();
+            e.Property(u => u.Status).HasConversion<string>().HasDefaultValue(EntityStatus.Active);
 
             e.HasOne(u => u.Company)
              .WithMany(c => c.Members)

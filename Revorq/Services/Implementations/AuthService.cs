@@ -40,7 +40,8 @@ public class AuthService : IAuthService
         var normalizedUsername = _userManager.NormalizeName(request.Username);
         var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUsername
-                                   && u.CompanyId == company.Id);
+                                   && u.CompanyId == company.Id
+                                   && u.Status == EntityStatus.Active);
         if (user is null)
             return ServiceResult<AuthResponse>.Error("Invalid username or password.");
 

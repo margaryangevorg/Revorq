@@ -1,5 +1,6 @@
 using Revorq.DAL.Context;
 using Revorq.DAL.Entities;
+using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,29 +19,30 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users
             .Include(u => u.Company)
-            .FirstOrDefaultAsync(u => u.Id == id);
+            .FirstOrDefaultAsync(u => u.Id == id && u.Status == EntityStatus.Active);
     }
 
     public async Task<IEnumerable<AppUser>> GetCompanyUsersByRoleAsync(int companyId, string? roleName)
     {
-        var company = await _context.Companies
-            .Include(c => c.Members)
+        var query = _context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == companyId);
+            .Where(u => u.CompanyId == companyId && u.Status == EntityStatus.Active);
 
-        if (company is null)
-            return [];
+        if (roleName is not null)
+            query = query.Where(u => _context.UserRoles
+                .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => new { ur.UserId, r.Name })
+                .Any(x => x.UserId == u.Id && x.Name == roleName));
 
-        if (roleName is null)
-            return company.Members;
+        return await query.ToListAsync();
+    }
 
-        var roleId = await _context.Roles
-            .Where(r => r.Name == roleName)
-            .Select(r => r.Id)
-            .FirstOrDefaultAsync();
+    public async Task<AppUser?> GetByIdAsync(int id)
+    {
+        return await _context.Users.FindAsync(id);
+    }
 
-        return company.Members
-            .Where(u => _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == roleId))
-            .ToList();
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }
