@@ -188,14 +188,14 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> CreateReportAsync(int orderId, CreateReportRequest request)
+    public async Task<ServiceResult<int>> CreateReportAsync(int orderId, CreateReportRequest request)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(orderId);
         if (order is null)
-            return ServiceResult<bool>.NotFound($"Order {orderId} not found.");
+            return ServiceResult<int>.NotFound($"Order {orderId} not found.");
 
         if (order.Status == OrderStatus.Done)
-            return ServiceResult<bool>.Error("Order is already completed.");
+            return ServiceResult<int>.Error("Order is already completed.");
 
         var uploadedUrls = new List<string>();
         if (request.Images is { Count: > 0 })
@@ -204,9 +204,10 @@ public class MaintenanceService : IMaintenanceService
             uploadedUrls.AddRange(await Task.WhenAll(uploadTasks));
         }
 
+        MaintenanceReport report;
         if (order.Report is null)
         {
-            var report = new MaintenanceReport
+            report = new MaintenanceReport
             {
                 OrderId = orderId,
                 JobStartedDate = request.JobStartedDate,
@@ -223,7 +224,7 @@ public class MaintenanceService : IMaintenanceService
         }
         else
         {
-            var report = order.Report;
+            report = order.Report;
             report.JobStartedDate = request.JobStartedDate;
             report.CompletedDate = request.CompletedDate;
             report.IssueDetected = request.IssueDetected;
@@ -242,7 +243,7 @@ public class MaintenanceService : IMaintenanceService
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 
-        return ServiceResult<bool>.Ok(true);
+        return ServiceResult<int>.Ok(report.OrderId);
     }
 
     public async Task<ServiceResult<bool>> UpdateReportAsync(int orderId, UpdateReportRequest request, int userId)

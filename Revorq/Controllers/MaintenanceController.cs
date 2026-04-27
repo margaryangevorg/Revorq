@@ -80,7 +80,7 @@ public class MaintenanceController : ControllerBase
 
         var result = await _maintenanceService.CreateOrderAsync(request, userId.Value);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
-        return Ok();
+        return Ok(result.Data);
     }
 
     [HttpGet("{id}")]
@@ -185,7 +185,7 @@ public class MaintenanceController : ControllerBase
         var result = await _maintenanceService.CreateReportAsync(id, request);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
-        return Ok();
+        return Ok(result.Data);
     }
 
     [HttpDelete("{id}")]
