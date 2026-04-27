@@ -115,7 +115,7 @@ public class CompanyController : ControllerBase
 
     [HttpPut("logo")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> UpdateLogo(IFormFile logo)
+    public async Task<IActionResult> UpdateLogo([FromForm] IFormFile logo)
     {
         var companyId = GetCompanyId();
         if (companyId is null)
