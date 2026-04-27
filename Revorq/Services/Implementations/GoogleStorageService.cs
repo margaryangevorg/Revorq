@@ -40,7 +40,7 @@ public class GoogleStorageService : IStorageService
     public Task<string> UploadCompanyLogoAsync(int companyId, IFormFile file)
     {
         var ext = Path.GetExtension(file.FileName);
-        return UploadAsync($"companies/{companyId}/logo{ext}", file);
+        return UploadAsync($"companies/{companyId}/logo_{Guid.NewGuid()}{ext}", file);
     }
 
     public Task<string> UploadMaintenanceOrderImageAsync(int orderId, IFormFile file)
