@@ -79,8 +79,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
                      && (status == null || o.Status == status)
                      && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null))
                      && (isScheduled == null || (isScheduled == true ? o.MaintenanceType == MaintenanceType.Scheduled : o.MaintenanceType == MaintenanceType.Unscheduled)))
-            .OrderBy(o => o.Elevator.Building.Name)
-            .ThenBy(o => o.Elevator.NumberInProject)
+            .OrderBy(o => o.Elevator.CreationDate)
             .AsNoTracking()
             .ToListAsync();
     }
