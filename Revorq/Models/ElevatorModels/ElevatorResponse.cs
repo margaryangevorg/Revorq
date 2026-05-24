@@ -17,4 +17,5 @@ public class ElevatorResponse
     public DateTime CreationDate { get; set; }
     public int BuildingId { get; set; }
     public string BuildingName { get; set; } = string.Empty;
+    public int MonthlyDefaultOrdersCount { get; set; }
 }

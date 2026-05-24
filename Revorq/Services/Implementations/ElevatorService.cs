@@ -76,7 +76,8 @@ public class ElevatorService : IElevatorService
             WarrantyType = request.WarrantyType,
             WarrantyDate = request.WarrantyDate,
             Priority = request.Priority,
-            BuildingId = request.BuildingId
+            BuildingId = request.BuildingId,
+            MonthlyDefaultOrdersCount = request.MonthlyDefaultOrdersCount
         };
 
         await _elevatorRepository.AddAsync(elevator);
@@ -109,6 +110,7 @@ public class ElevatorService : IElevatorService
         elevator.WarrantyDate = request.WarrantyDate;
         elevator.Priority = request.Priority;
         elevator.BuildingId = request.BuildingId;
+        elevator.MonthlyDefaultOrdersCount = request.MonthlyDefaultOrdersCount;
 
         _elevatorRepository.Update(elevator);
         await _elevatorRepository.SaveChangesAsync();
@@ -153,6 +155,7 @@ public class ElevatorService : IElevatorService
         Priority = el.Priority,
         CreationDate = el.CreationDate,
         BuildingId = el.BuildingId,
-        BuildingName = el.Building?.Name ?? string.Empty
+        BuildingName = el.Building?.Name ?? string.Empty,
+        MonthlyDefaultOrdersCount = el.MonthlyDefaultOrdersCount
     };
 }

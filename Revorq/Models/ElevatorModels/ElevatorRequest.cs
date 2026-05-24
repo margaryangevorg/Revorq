@@ -14,4 +14,5 @@ public class ElevatorRequest
     public DateTime? WarrantyDate { get; set; }
     public Priority? Priority { get; set; }
     public int BuildingId { get; set; }
+    public int MonthlyDefaultOrdersCount { get; set; }
 }
