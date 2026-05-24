@@ -394,32 +394,70 @@ public class MaintenanceService : IMaintenanceService
         if (user is null)
             return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.NotFound("User not found.");
 
-        var unassignedOrders = (await _orderRepository.GetUnassignedScheduledOrdersAsync(year, month, user.CompanyId)).ToList();
-        if (!unassignedOrders.Any())
+        var elevators = (await _elevatorRepository.GetAllByCompanyAsync(user.CompanyId)).ToList();
+        if (!elevators.Any())
             return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok([]);
+
+        var elevatorIds = elevators.Select(e => e.Id).ToList();
+
+        var existingOrders = await _orderRepository.GetOrdersByElevatorIdsAndMonthAsync(elevatorIds, year, month);
+        var existingCountByElevator = existingOrders
+            .GroupBy(o => o.ElevatorId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var scheduledDate = new DateTime(year, month, 1);
+        var newOrders = new List<MaintenanceOrder>();
+
+        foreach (var elevator in elevators)
+        {
+            var existingCount = existingCountByElevator.GetValueOrDefault(elevator.Id, 0);
+            var toCreate = elevator.MonthlyDefaultOrdersCount - existingCount;
+
+            for (var i = 0; i < toCreate; i++)
+            {
+                newOrders.Add(new MaintenanceOrder
+                {
+                    ElevatorId = elevator.Id,
+                    MaintenanceType = MaintenanceType.Scheduled,
+                    ScheduledDate = scheduledDate,
+                    ShortDescription = "Default planning order",
+                    Status = OrderStatus.Open,
+                    ReporterId = userId
+                });
+            }
+        }
+
+        if (newOrders.Any())
+            await _orderRepository.AddOrdersAsync(newOrders);
 
         var prevMonth = month == 1 ? 12 : month - 1;
         var prevYear = month == 1 ? year - 1 : year;
 
-        var elevatorIds = unassignedOrders.Select(o => o.ElevatorId).ToList();
         var prevMonthOrders = await _orderRepository.GetOrdersByElevatorIdsAndMonthAsync(elevatorIds, prevYear, prevMonth);
-        var prevMonthMap = prevMonthOrders
+        var prevMonthByElevator = prevMonthOrders
             .GroupBy(o => o.ElevatorId)
-            .ToDictionary(g => g.Key, g => g.First());
+            .ToDictionary(g => g.Key, g => g.ToList());
 
-        foreach (var order in unassignedOrders)
+        var newOrdersByElevator = newOrders
+            .GroupBy(o => o.ElevatorId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var (elevatorId, elevatorNewOrders) in newOrdersByElevator)
         {
-            if (!prevMonthMap.TryGetValue(order.ElevatorId, out var prev))
+            if (!prevMonthByElevator.TryGetValue(elevatorId, out var prevOrders))
                 continue;
 
-            order.AssignedEngineerId = prev.AssignedEngineerId;
-            order.ScheduledDate = new DateTime(year, month, prev.ScheduledDate.Day);
-            _orderRepository.Update(order);
+            for (var i = 0; i < elevatorNewOrders.Count && i < prevOrders.Count; i++)
+            {
+                elevatorNewOrders[i].AssignedEngineerId = prevOrders[i].AssignedEngineerId;
+                elevatorNewOrders[i].ScheduledDate = new DateTime(year, month, prevOrders[i].ScheduledDate.Day);
+            }
         }
 
-        await _orderRepository.SaveChangesAsync();
+        if (newOrders.Any())
+            await _orderRepository.SaveChangesAsync();
 
-        return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(unassignedOrders.Select(MapToResponse));
+        return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(newOrders.Select(MapToResponse));
     }
 
     private static MaintenanceOrderResponse MapToResponse(MaintenanceOrder o) => new()

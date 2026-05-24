@@ -44,8 +44,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .Where(o => elevatorIds.Contains(o.ElevatorId)
                      && o.MaintenanceType == MaintenanceType.Scheduled
                      && o.ScheduledDate.Year == year
-                     && o.ScheduledDate.Month == month
-                     && o.AssignedEngineerId != null)
+                     && o.ScheduledDate.Month == month)
             .AsNoTracking()
             .ToListAsync();
     }
