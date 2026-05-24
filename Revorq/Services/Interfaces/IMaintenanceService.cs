@@ -22,4 +22,5 @@ public interface IMaintenanceService
     Task<ServiceResult<bool>> DeleteAsync(int id);
     Task<ServiceResult<IEnumerable<MaintenanceOrderResponse>>> CreateDefaultPlanningAsync(int userId, int year, int month);
     Task<ServiceResult<IEnumerable<MaintenanceOrderResponse>>> AutoPlanningAsync(int userId, int year, int month);
+    Task<byte[]> ExportMonthlyReportsAsync(int userId, int year, int month);
 }

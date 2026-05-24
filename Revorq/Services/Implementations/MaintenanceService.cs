@@ -1,3 +1,4 @@
+using ClosedXML.Excel;
 using Revorq.API.Models;
 using Revorq.API.Models.MaintenanceOrderModels;
 using Revorq.API.Services.Interfaces;
@@ -458,6 +459,57 @@ public class MaintenanceService : IMaintenanceService
             await _orderRepository.SaveChangesAsync();
 
         return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(newOrders.Select(MapToResponse));
+    }
+
+    public async Task<byte[]> ExportMonthlyReportsAsync(int userId, int year, int month)
+    {
+        var orders = await GetMonthlyAsync(userId, year, month, null, null, null);
+
+        using var workbook = new XLWorkbook();
+        var ws = workbook.Worksheets.Add($"{year}-{month:D2}");
+
+        string[] headers =
+        [
+            "Order #", "Elevator", "Building", "Address", "Assigned Engineer",
+            "Type", "Scheduled Date", "Status", "Order Description",
+            "Job Started", "Completed", "Issue Detected", "Visual Check",
+            "Adjustment", "Cleaning", "Report Description"
+        ];
+
+        for (var i = 0; i < headers.Length; i++)
+        {
+            var cell = ws.Cell(1, i + 1);
+            cell.Value = headers[i];
+            cell.Style.Font.Bold = true;
+        }
+
+        var row = 2;
+        foreach (var o in orders)
+        {
+            ws.Cell(row, 1).Value = o.Id;
+            ws.Cell(row, 2).Value = o.ElevatorNumberInProject;
+            ws.Cell(row, 3).Value = o.BuildingName;
+            ws.Cell(row, 4).Value = o.BuildingAddress;
+            ws.Cell(row, 5).Value = o.AssignedEngineerName ?? string.Empty;
+            ws.Cell(row, 6).Value = o.MaintenanceType;
+            ws.Cell(row, 7).Value = o.ScheduledDate.ToString("yyyy-MM-dd");
+            ws.Cell(row, 8).Value = o.Status.ToString();
+            ws.Cell(row, 9).Value = o.ShortDescription ?? string.Empty;
+            ws.Cell(row, 10).Value = o.Report?.JobStartedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
+            ws.Cell(row, 11).Value = o.Report?.CompletedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
+            ws.Cell(row, 12).Value = o.Report?.IssueDetected == true ? "Yes" : "No";
+            ws.Cell(row, 13).Value = o.Report?.VisualCheckDone == true ? "Yes" : "No";
+            ws.Cell(row, 14).Value = o.Report?.AdjustmentDone == true ? "Yes" : "No";
+            ws.Cell(row, 15).Value = o.Report?.CleaningDone == true ? "Yes" : "No";
+            ws.Cell(row, 16).Value = o.Report?.ShortDescription ?? string.Empty;
+            row++;
+        }
+
+        ws.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        return stream.ToArray();
     }
 
     private static MaintenanceOrderResponse MapToResponse(MaintenanceOrder o) => new()

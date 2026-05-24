@@ -47,6 +47,17 @@ public class MaintenanceController : ControllerBase
         return Ok(await _maintenanceService.GetUnscheduledAsync());
     }
 
+    [HttpGet("export")]
+    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
+    public async Task<IActionResult> ExportMonthlyReports([FromQuery] int year, [FromQuery] int month)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var bytes = await _maintenanceService.ExportMonthlyReportsAsync(userId.Value, year, month);
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"reports-{year}-{month:D2}.xlsx");
+    }
+
     [HttpPost("default-planning")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> CreateDefaultPlanning([FromQuery] int year, [FromQuery] int month)
