@@ -17,7 +17,7 @@ public class Elevator
     public DateTime CreationDate { get; set; } = DateTime.Now;
     public EntityStatus Status { get; set; } = EntityStatus.Active;
 
-    public int MonthlyDefaultOrdersCount { get; set; }
+    public int MonthlyDefaultOrdersCount { get; set; } = 1;
 
     public int BuildingId { get; set; }
     public Building Building { get; set; } = null!;
