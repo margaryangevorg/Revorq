@@ -28,7 +28,7 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
     {
         return await _context.Elevators
             .Include(e => e.Building)
-            .FirstOrDefaultAsync(e => e.Id == id && e.Status == EntityStatus.Active);
+            .FirstOrDefaultAsync(e => e.Id == id && e.Status == EntityStatus.Active && e.WarrantyType != WarrantyType.Unsupervised);
     }
 
     public async Task<IEnumerable<Elevator>> GetAllByUserAsync(int userId)
@@ -37,7 +37,7 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .Where(a => a.UserId == userId)
             .Include(a => a.Building)
                 .ThenInclude(b => b.Elevators)
-            .SelectMany(a => a.Building.Elevators.Where(e => e.Status == EntityStatus.Active).Select(e => new Elevator
+            .SelectMany(a => a.Building.Elevators.Where(e => e.Status == EntityStatus.Active && e.WarrantyType != WarrantyType.Unsupervised).Select(e => new Elevator
             {
                 Id = e.Id,
                 NumberInProject = e.NumberInProject,
@@ -67,7 +67,7 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
     public async Task<IEnumerable<Elevator>> GetAllByCompanyAsync(int companyId)
     {
         return await _context.Elevators
-            .Where(e => e.Building.CompanyId == companyId && e.Status == EntityStatus.Active)
+            .Where(e => e.Building.CompanyId == companyId && e.Status == EntityStatus.Active && e.WarrantyType != WarrantyType.Unsupervised)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -78,7 +78,7 @@ public class ElevatorRepository : Repository<Elevator>, IElevatorRepository
             .Where(a => a.UserId == userId && a.Building.Name.ToLower() == buildingName.ToLower())
             .Include(a => a.Building)
                 .ThenInclude(b => b.Elevators)
-            .SelectMany(a => a.Building.Elevators.Where(e => e.Status == EntityStatus.Active).Select(e => new Elevator
+            .SelectMany(a => a.Building.Elevators.Where(e => e.Status == EntityStatus.Active && e.WarrantyType != WarrantyType.Unsupervised).Select(e => new Elevator
             {
                 Id = e.Id,
                 NumberInProject = e.NumberInProject,
