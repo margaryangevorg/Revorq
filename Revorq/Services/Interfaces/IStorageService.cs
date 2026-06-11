@@ -7,4 +7,6 @@ public interface IStorageService
     Task<string> UploadMaintenanceOrderImageAsync(int orderId, IFormFile file);
     Task<string> UploadMaintenanceReportImageAsync(int orderId, IFormFile file);
     Task DeleteFileAsync(string fileUrl);
+    Task<string> UploadDocumentAsync(IFormFile file);
+    Task<IEnumerable<string>> GetDocumentsAsync();
 }

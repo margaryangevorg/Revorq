@@ -55,6 +55,20 @@ public class GoogleStorageService : IStorageService
         return UploadAsync($"maintenanceReports/{orderId}/images/{Guid.NewGuid()}{ext}", file);
     }
 
+    public Task<string> UploadDocumentAsync(IFormFile file)
+    {
+        var ext = Path.GetExtension(file.FileName);
+        return UploadAsync($"documents/{Guid.NewGuid()}{ext}", file);
+    }
+
+    public async Task<IEnumerable<string>> GetDocumentsAsync()
+    {
+        var urls = new List<string>();
+        await foreach (var obj in _storageClient.ListObjectsAsync(_bucketName, "documents/"))
+            urls.Add($"https://storage.googleapis.com/{_bucketName}/{obj.Name}");
+        return urls;
+    }
+
     public async Task DeleteFileAsync(string fileUrl)
     {
         var prefix = $"https://storage.googleapis.com/{_bucketName}/";
