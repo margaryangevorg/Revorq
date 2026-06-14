@@ -37,4 +37,14 @@ public class DocumentsController : ControllerBase
         var urls = await _storageService.GetDocumentsAsync();
         return Ok(urls);
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> Delete([FromBody] List<string> fileUrls)
+    {
+        if (fileUrls.Count == 0)
+            return BadRequest("No file URLs provided.");
+
+        await Task.WhenAll(fileUrls.Select(url => _storageService.DeleteFileAsync(url)));
+        return Ok();
+    }
 }
