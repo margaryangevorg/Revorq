@@ -139,4 +139,12 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapGet("/debug/tz", () => new
+{
+    Now = DateTime.Now,
+    Utc = DateTime.UtcNow,
+    Env = Environment.GetEnvironmentVariable("TZ")
+});
+
 app.Run();
