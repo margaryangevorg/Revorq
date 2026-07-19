@@ -22,7 +22,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         foreach (var entry in ChangeTracker.Entries<IAuditable>())
         {
             if (entry.State == EntityState.Added)
