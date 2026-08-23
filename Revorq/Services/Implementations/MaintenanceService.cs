@@ -1,11 +1,12 @@
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Identity;
 using Revorq.API.Models;
 using Revorq.API.Models.MaintenanceOrderModels;
 using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Entities;
 using Revorq.DAL.Enums;
 using Revorq.DAL.Repositories.Interfaces;
-using Microsoft.AspNetCore.Identity;
+using Revorq.Models.MaintenanceOrderModels;
 
 namespace Revorq.API.Services.Implementations;
 
@@ -37,7 +38,7 @@ public class MaintenanceService : IMaintenanceService
         return orders.Select(MapToResponse);
     }
 
-    public async Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
+    public async Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, MaintenanceMonthlyFilterModel filterModel)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
@@ -46,7 +47,7 @@ public class MaintenanceService : IMaintenanceService
         var roles = await _userManager.GetRolesAsync(user);
         int? assignedEngineerId = roles.Contains(nameof(Role.MaintenanceEngineer)) ? userId : null;
 
-        var orders = await _orderRepository.GetMonthlyOrdersAsync(userId, assignedEngineerId, year, month, status, isUnassigned, isScheduled);
+        var orders = await _orderRepository.GetMonthlyOrdersAsync(userId, assignedEngineerId, filterModel.Year, filterModel.Month, filterModel.Statuses, filterModel.IsUnassigned, filterModel.IsScheduled);
         return orders.Select(MapToResponse);
     }
 
@@ -463,7 +464,14 @@ public class MaintenanceService : IMaintenanceService
 
     public async Task<byte[]> ExportMonthlyReportsAsync(int userId, int year, int month)
     {
-        var orders = await GetMonthlyAsync(userId, year, month, null, null, null);
+        var filterModel = new MaintenanceMonthlyFilterModel
+        {
+            Year = year,
+            Month = month,
+            Statuses = Enum.GetValues<OrderStatus>().ToList()
+        };
+
+        var orders = await GetMonthlyAsync(userId, filterModel);
 
         using var workbook = new XLWorkbook();
         var ws = workbook.Worksheets.Add($"{year}-{month:D2}");

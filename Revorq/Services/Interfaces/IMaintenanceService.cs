@@ -1,13 +1,14 @@
 using Revorq.API.Models;
 using Revorq.API.Models.MaintenanceOrderModels;
 using Revorq.DAL.Enums;
+using Revorq.Models.MaintenanceOrderModels;
 
 namespace Revorq.API.Services.Interfaces;
 
 public interface IMaintenanceService
 {
     Task<IEnumerable<MaintenanceOrderResponse>> GetOrdersUntilDateAsync(DateTime untilDate);
-    Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled);
+    Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, MaintenanceMonthlyFilterModel filterModel);
     Task<IEnumerable<MaintenanceOrderResponse>> GetUnscheduledAsync();
     Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request, int reporterId);
     Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(int id);

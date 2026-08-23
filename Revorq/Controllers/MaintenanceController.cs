@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Revorq.API.Models.MaintenanceOrderModels;
 using Revorq.API.Services.Interfaces;
 using Revorq.DAL.Enums;
+using Revorq.Models.MaintenanceOrderModels;
 using System.Security.Claims;
 
 namespace Revorq.API.Controllers;
@@ -26,18 +27,13 @@ public class MaintenanceController : ControllerBase
         return Ok(await _maintenanceService.GetOrdersUntilDateAsync(untilDate));
     }
 
-    [HttpGet("monthly")]
-    public async Task<IActionResult> GetMonthly(
-        [FromQuery] int year,
-        [FromQuery] int month,
-        [FromQuery] OrderStatus? status,
-        [FromQuery] bool? isUnassigned,
-        [FromQuery] bool? isScheduled)
+    [HttpPost("getMonthly")]
+    public async Task<IActionResult> GetMonthly(MaintenanceMonthlyFilterModel filterModel)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
 
-        return Ok(await _maintenanceService.GetMonthlyAsync(userId.Value, year, month, status, isUnassigned, isScheduled));
+        return Ok(await _maintenanceService.GetMonthlyAsync(userId.Value, filterModel));
     }
 
     [HttpGet("unscheduled")]

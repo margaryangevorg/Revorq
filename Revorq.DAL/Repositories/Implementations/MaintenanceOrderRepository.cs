@@ -61,7 +61,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
     }
 
     public async Task<IEnumerable<MaintenanceOrder>> GetMonthlyOrdersAsync(
-        int userId, int? assignedEngineerId, int year, int month, OrderStatus? status, bool? isUnassigned, bool? isScheduled)
+        int userId, int? assignedEngineerId, int year, int month, List<OrderStatus> statuses, bool? isUnassigned, bool? isScheduled)
     {
         return await _context.UserBuildingAccesses
             .Where(a => a.UserId == userId)
@@ -75,7 +75,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .Where(o => o.ScheduledDate.Year == year
                      && o.ScheduledDate.Month == month
                      && (assignedEngineerId == null || o.AssignedEngineerId == assignedEngineerId)
-                     && (status == null || o.Status == status)
+                     && (statuses != null && statuses.Contains(o.Status))
                      && (isUnassigned == null || (isUnassigned == true ? o.AssignedEngineerId == null : o.AssignedEngineerId != null))
                      && (isScheduled == null || (isScheduled == true ? o.MaintenanceType == MaintenanceType.Scheduled : o.MaintenanceType == MaintenanceType.Unscheduled)))
             .OrderBy(o => o.Elevator.Priority)
