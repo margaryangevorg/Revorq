@@ -188,7 +188,7 @@ builder.Entity<MaintenanceReport>(e =>
         {
             e.HasKey(r => r.OrderId);
 
-            e.Property(r => r.ShortDescription).HasMaxLength(1000);
+            e.Property(r => r.Notes).HasMaxLength(1000);
 
             e.Property(r => r.ImageUrls)
              .HasConversion(

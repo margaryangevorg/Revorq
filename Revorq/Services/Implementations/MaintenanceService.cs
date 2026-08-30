@@ -218,7 +218,8 @@ public class MaintenanceService : IMaintenanceService
                 VisualCheckDone = request.VisualCheckDone,
                 AdjustmentDone = request.AdjustmentDone,
                 CleaningDone = request.CleaningDone,
-                ShortDescription = request.ShortDescription,
+                IsPartChange = request.IsPartChange,
+                Notes = request.Notes,
                 ImageUrls = uploadedUrls
             };
 
@@ -233,7 +234,8 @@ public class MaintenanceService : IMaintenanceService
             report.VisualCheckDone = request.VisualCheckDone;
             report.AdjustmentDone = request.AdjustmentDone;
             report.CleaningDone = request.CleaningDone;
-            report.ShortDescription = request.ShortDescription;
+            report.IsPartChange = request.IsPartChange;
+            report.Notes = request.Notes;
             if (uploadedUrls.Count > 0)
                 report.ImageUrls.AddRange(uploadedUrls);
 
@@ -272,7 +274,8 @@ public class MaintenanceService : IMaintenanceService
         report.VisualCheckDone = request.VisualCheckDone;
         report.AdjustmentDone = request.AdjustmentDone;
         report.CleaningDone = request.CleaningDone;
-        report.ShortDescription = request.ShortDescription;
+        report.IsPartChange = request.IsPartChange;
+        report.Notes = request.Notes;
 
         if (request.Status.HasValue)
             order.Status = request.Status.Value;
@@ -481,7 +484,7 @@ public class MaintenanceService : IMaintenanceService
             "Order #", "Elevator", "Building", "Address", "Assigned Engineer",
             "Type", "Scheduled Date", "Status", "Order Description",
             "Job Started", "Completed", "Issue Detected", "Visual Check",
-            "Adjustment", "Cleaning", "Report Description"
+            "Adjustment", "Cleaning", "Part Change", "Report Description"
         ];
 
         for (var i = 0; i < headers.Length; i++)
@@ -509,7 +512,8 @@ public class MaintenanceService : IMaintenanceService
             ws.Cell(row, 13).Value = o.Report?.VisualCheckDone == true ? "Yes" : "No";
             ws.Cell(row, 14).Value = o.Report?.AdjustmentDone == true ? "Yes" : "No";
             ws.Cell(row, 15).Value = o.Report?.CleaningDone == true ? "Yes" : "No";
-            ws.Cell(row, 16).Value = o.Report?.ShortDescription ?? string.Empty;
+            ws.Cell(row, 16).Value = o.Report?.IsPartChange == true ? "Yes" : "No";
+            ws.Cell(row, 17).Value = o.Report?.Notes ?? string.Empty;
             row++;
         }
 
@@ -552,7 +556,8 @@ public class MaintenanceService : IMaintenanceService
             VisualCheckDone = o.Report.VisualCheckDone,
             AdjustmentDone = o.Report.AdjustmentDone,
             CleaningDone = o.Report.CleaningDone,
-            ShortDescription = o.Report.ShortDescription,
+            IsPartChange = o.Report.IsPartChange,
+            Notes = o.Report.Notes,
             ImageUrls = o.Report.ImageUrls,
             CreatedDate = o.Report.CreatedDate,
             UpdatedDate = o.Report.UpdatedDate

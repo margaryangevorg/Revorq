@@ -17,8 +17,10 @@ public class CreateReportRequest
     public bool AdjustmentDone { get; set; }
     [FromForm(Name = "cleaningDone")]
     public bool CleaningDone { get; set; }
-    [FromForm(Name = "shortDescription")]
-    public string? ShortDescription { get; set; }
+    [FromForm(Name = "isPartChange")]
+    public bool IsPartChange { get; set; }
+    [FromForm(Name = "notes")]
+    public string? Notes { get; set; }
     [FromForm(Name = "images")]
     public List<IFormFile>? Images { get; set; }
     [FromForm(Name = "status")]

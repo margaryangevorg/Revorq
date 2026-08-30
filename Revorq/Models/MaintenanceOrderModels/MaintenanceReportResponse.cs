@@ -8,7 +8,8 @@ public class MaintenanceReportResponse
     public bool VisualCheckDone { get; set; }
     public bool AdjustmentDone { get; set; }
     public bool CleaningDone { get; set; }
-    public string? ShortDescription { get; set; }
+    public bool IsPartChange { get; set; }
+    public string? Notes { get; set; }
     public List<string> ImageUrls { get; set; } = [];
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }

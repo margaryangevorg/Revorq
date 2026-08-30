@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Revorq.DAL.Context;
@@ -11,9 +12,11 @@ using Revorq.DAL.Context;
 namespace Revorq.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260830120000_RenameMaintenanceReportShortDescriptionToNotes")]
+    partial class RenameMaintenanceReportShortDescriptionToNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -501,9 +504,6 @@ namespace Revorq.DAL.Migrations
                     b.Property<string>("ImageUrls")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsPartChange")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IssueDetected")
                         .HasColumnType("boolean");
