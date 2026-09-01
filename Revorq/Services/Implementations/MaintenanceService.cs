@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Revorq.API.Models;
 using Revorq.API.Models.MaintenanceOrderModels;
 using Revorq.API.Services.Interfaces;
@@ -14,6 +15,7 @@ public class MaintenanceService : IMaintenanceService
 {
     private readonly IMaintenanceOrderRepository _orderRepository;
     private readonly IMaintenanceReportRepository _reportRepository;
+    private readonly IMaintenanceOrderHistoryRepository _historyRepository;
     private readonly IElevatorRepository _elevatorRepository;
     private readonly IStorageService _storageService;
     private readonly UserManager<AppUser> _userManager;
@@ -21,12 +23,14 @@ public class MaintenanceService : IMaintenanceService
     public MaintenanceService(
         IMaintenanceOrderRepository orderRepository,
         IMaintenanceReportRepository reportRepository,
+        IMaintenanceOrderHistoryRepository historyRepository,
         IElevatorRepository elevatorRepository,
         IStorageService storageService,
         UserManager<AppUser> userManager)
     {
         _orderRepository = orderRepository;
         _reportRepository = reportRepository;
+        _historyRepository = historyRepository;
         _elevatorRepository = elevatorRepository;
         _storageService = storageService;
         _userManager = userManager;
@@ -75,6 +79,16 @@ public class MaintenanceService : IMaintenanceService
         };
 
         await _orderRepository.AddAsync(order);
+
+        if (request.AssignedEngineerId.HasValue)
+        {
+            await _historyRepository.AddAsync(new MaintenanceOrderHistory
+            {
+                Order = order,
+                Assignments = [new EngineerAssignment { EngineerId = request.AssignedEngineerId.Value, AssignedDate = DateTime.UtcNow }]
+            });
+        }
+
         await _orderRepository.SaveChangesAsync();
 
         if (request.Images.Count > 0)
@@ -107,8 +121,21 @@ public class MaintenanceService : IMaintenanceService
             return ServiceResult<bool>.Error("Cannot assign a completed order.");
 
         order.AssignedEngineerId = engineerId;
-
         _orderRepository.Update(order);
+
+        var history = await _historyRepository.GetByIdAsync(orderId);
+        if (history is null)
+        {
+            history = new MaintenanceOrderHistory { OrderId = orderId };
+            history.Assignments.Add(new EngineerAssignment { EngineerId = engineerId, AssignedDate = DateTime.UtcNow });
+            await _historyRepository.AddAsync(history);
+        }
+        else
+        {
+            history.Assignments.Add(new EngineerAssignment { EngineerId = engineerId, AssignedDate = DateTime.UtcNow });
+            _historyRepository.Update(history);
+        }
+
         await _orderRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);
@@ -454,8 +481,18 @@ public class MaintenanceService : IMaintenanceService
 
             for (var i = 0; i < elevatorNewOrders.Count && i < prevOrders.Count; i++)
             {
-                elevatorNewOrders[i].AssignedEngineerId = prevOrders[i].AssignedEngineerId;
+                var previousEngineerId = prevOrders[i].AssignedEngineerId;
+                elevatorNewOrders[i].AssignedEngineerId = previousEngineerId;
                 elevatorNewOrders[i].ScheduledDate = new DateTime(year, month, prevOrders[i].ScheduledDate.Day) + DateTime.UtcNow.TimeOfDay;
+
+                if (previousEngineerId.HasValue)
+                {
+                    await _historyRepository.AddAsync(new MaintenanceOrderHistory
+                    {
+                        Order = elevatorNewOrders[i],
+                        Assignments = [new EngineerAssignment { EngineerId = previousEngineerId.Value, AssignedDate = DateTime.UtcNow }]
+                    });
+                }
             }
         }
 
@@ -474,14 +511,29 @@ public class MaintenanceService : IMaintenanceService
             Statuses = Enum.GetValues<OrderStatus>().ToList()
         };
 
-        var orders = await GetMonthlyAsync(userId, filterModel);
+        var orders = (await GetMonthlyAsync(userId, filterModel)).ToList();
+
+        var histories = (await _historyRepository.GetByOrderIdsAsync(orders.Select(o => o.Id)))
+            .ToDictionary(h => h.OrderId);
+
+        var engineerIds = histories.Values
+            .SelectMany(h => h.Assignments)
+            .Select(a => a.EngineerId)
+            .Distinct()
+            .ToList();
+
+        var engineerNames = engineerIds.Count == 0
+            ? new Dictionary<int, string>()
+            : await _userManager.Users
+                .Where(u => engineerIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => $"{u.FirstName} {u.LastName}");
 
         using var workbook = new XLWorkbook();
         var ws = workbook.Worksheets.Add($"{year}-{month:D2}");
 
         string[] headers =
         [
-            "Order #", "Elevator", "Building", "Address", "Assigned Engineer",
+            "Order #", "Elevator", "Building", "Address", "Assigned Engineer", "Assignment History",
             "Type", "Scheduled Date", "Status", "Order Description",
             "Job Started", "Completed", "Issue Detected", "Visual Check",
             "Adjustment", "Cleaning", "Part Change", "Report Description"
@@ -502,18 +554,23 @@ public class MaintenanceService : IMaintenanceService
             ws.Cell(row, 3).Value = o.BuildingName;
             ws.Cell(row, 4).Value = o.BuildingAddress;
             ws.Cell(row, 5).Value = o.AssignedEngineerName ?? string.Empty;
-            ws.Cell(row, 6).Value = o.MaintenanceType;
-            ws.Cell(row, 7).Value = o.ScheduledDate.ToString("yyyy-MM-dd");
-            ws.Cell(row, 8).Value = o.Status.ToString();
-            ws.Cell(row, 9).Value = o.ShortDescription ?? string.Empty;
-            ws.Cell(row, 10).Value = o.Report?.JobStartedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
-            ws.Cell(row, 11).Value = o.Report?.CompletedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
-            ws.Cell(row, 12).Value = o.Report?.IssueDetected == true ? "Yes" : "No";
-            ws.Cell(row, 13).Value = o.Report?.VisualCheckDone == true ? "Yes" : "No";
-            ws.Cell(row, 14).Value = o.Report?.AdjustmentDone == true ? "Yes" : "No";
-            ws.Cell(row, 15).Value = o.Report?.CleaningDone == true ? "Yes" : "No";
-            ws.Cell(row, 16).Value = o.Report?.IsPartChange == true ? "Yes" : "No";
-            ws.Cell(row, 17).Value = o.Report?.Notes ?? string.Empty;
+            ws.Cell(row, 6).Value = histories.TryGetValue(o.Id, out var history)
+                ? string.Join("; ", history.Assignments
+                    .OrderBy(a => a.AssignedDate)
+                    .Select(a => $"{(engineerNames.TryGetValue(a.EngineerId, out var name) ? name : string.Empty)} ({a.AssignedDate:yyyy-MM-dd HH:mm})"))
+                : string.Empty;
+            ws.Cell(row, 7).Value = o.MaintenanceType;
+            ws.Cell(row, 8).Value = o.ScheduledDate.ToString("yyyy-MM-dd");
+            ws.Cell(row, 9).Value = o.Status.ToString();
+            ws.Cell(row, 10).Value = o.ShortDescription ?? string.Empty;
+            ws.Cell(row, 11).Value = o.Report?.JobStartedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
+            ws.Cell(row, 12).Value = o.Report?.CompletedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
+            ws.Cell(row, 13).Value = o.Report?.IssueDetected == true ? "Yes" : "No";
+            ws.Cell(row, 14).Value = o.Report?.VisualCheckDone == true ? "Yes" : "No";
+            ws.Cell(row, 15).Value = o.Report?.AdjustmentDone == true ? "Yes" : "No";
+            ws.Cell(row, 16).Value = o.Report?.CleaningDone == true ? "Yes" : "No";
+            ws.Cell(row, 17).Value = o.Report?.IsPartChange == true ? "Yes" : "No";
+            ws.Cell(row, 18).Value = o.Report?.Notes ?? string.Empty;
             row++;
         }
 

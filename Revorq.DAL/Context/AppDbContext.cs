@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<Elevator> Elevators => Set<Elevator>();
     public DbSet<MaintenanceOrder> MaintenanceOrders => Set<MaintenanceOrder>();
     public DbSet<MaintenanceReport> MaintenanceReports => Set<MaintenanceReport>();
+    public DbSet<MaintenanceOrderHistory> MaintenanceOrderHistories => Set<MaintenanceOrderHistory>();
     public DbSet<UserBuildingAccess> UserBuildingAccesses => Set<UserBuildingAccess>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -199,6 +200,22 @@ builder.Entity<MaintenanceReport>(e =>
             e.HasOne(r => r.MaintenanceOrder)
              .WithOne(o => o.Report)
              .HasForeignKey<MaintenanceReport>(r => r.OrderId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<MaintenanceOrderHistory>(e =>
+        {
+            e.HasKey(h => h.OrderId);
+
+            e.Property(h => h.Assignments)
+             .HasConversion(
+                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                 v => JsonSerializer.Deserialize<List<EngineerAssignment>>(v, (JsonSerializerOptions?)null) ?? new List<EngineerAssignment>())
+             .HasColumnType("text");
+
+            e.HasOne(h => h.Order)
+             .WithOne(o => o.History)
+             .HasForeignKey<MaintenanceOrderHistory>(h => h.OrderId)
              .OnDelete(DeleteBehavior.Cascade);
         });
     }

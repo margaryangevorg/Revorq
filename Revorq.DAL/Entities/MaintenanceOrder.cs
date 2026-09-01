@@ -26,4 +26,5 @@ public class MaintenanceOrder : IAuditable
     public DateTime UpdatedDate { get; set; }
 
     public MaintenanceReport? Report { get; set; }
+    public MaintenanceOrderHistory? History { get; set; }
 }
