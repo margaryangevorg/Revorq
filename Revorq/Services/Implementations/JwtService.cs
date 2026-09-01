@@ -37,7 +37,7 @@ public class JwtService : IJwtService
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiresAt = DateTime.Now.AddMinutes(int.Parse(_config["Jwt:ExpiryMinutes"] ?? "60"));
+        var expiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_config["Jwt:ExpiryMinutes"] ?? "60"));
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
@@ -52,7 +52,7 @@ public class JwtService : IJwtService
     public (string token, DateTime expiresAt) GenerateRefreshToken()
     {
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        var expiresAt = DateTime.Now.AddDays(int.Parse(_config["Jwt:RefreshExpiryDays"] ?? "30"));
+        var expiresAt = DateTime.UtcNow.AddDays(int.Parse(_config["Jwt:RefreshExpiryDays"] ?? "30"));
         return (token, expiresAt);
     }
 }

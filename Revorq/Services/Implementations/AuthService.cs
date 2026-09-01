@@ -66,7 +66,7 @@ public class AuthService : IAuthService
         if (stored is null || stored.IsRevoked)
             return ServiceResult<AuthResponse>.Error("Invalid refresh token.");
 
-        if (stored.ExpiresAt < DateTime.Now)
+        if (stored.ExpiresAt < DateTime.UtcNow)
             return ServiceResult<AuthResponse>.Error("Refresh token has expired.");
 
         // Revoke the used token (rotation)

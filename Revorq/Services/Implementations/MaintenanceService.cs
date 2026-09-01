@@ -68,7 +68,7 @@ public class MaintenanceService : IMaintenanceService
             ElevatorId = request.ElevatorId,
             AssignedEngineerId = request.AssignedEngineerId,
             MaintenanceType = request.MaintenanceType,
-            ScheduledDate = request.ScheduledDate.Date + DateTime.Now.TimeOfDay,
+            ScheduledDate = request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay,
             ShortDescription = request.ShortDescription,
             Status = OrderStatus.Open,
             ReporterId = reporterId
@@ -131,7 +131,7 @@ public class MaintenanceService : IMaintenanceService
             return ServiceResult<bool>.Error("You are not allowed to edit this order.");
 
         order.MaintenanceType = request.MaintenanceType;
-        order.ScheduledDate = request.ScheduledDate.Date + DateTime.Now.TimeOfDay;
+        order.ScheduledDate = request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay;
         order.ShortDescription = request.ShortDescription;
 
         _orderRepository.Update(order);
@@ -366,7 +366,7 @@ public class MaintenanceService : IMaintenanceService
         if (!elevatorsToSchedule.Any())
             return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok([]);
 
-        var scheduledDate = new DateTime(year, month, 1) + DateTime.Now.TimeOfDay;
+        var scheduledDate = new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay;
 
         var orders = elevatorsToSchedule.Select(elevator => new MaintenanceOrder
         {
@@ -410,7 +410,7 @@ public class MaintenanceService : IMaintenanceService
             .GroupBy(o => o.ElevatorId)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var scheduledDate = new DateTime(year, month, 1) + DateTime.Now.TimeOfDay;
+        var scheduledDate = new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay;
         var newOrders = new List<MaintenanceOrder>();
 
         foreach (var elevator in elevators)
@@ -455,7 +455,7 @@ public class MaintenanceService : IMaintenanceService
             for (var i = 0; i < elevatorNewOrders.Count && i < prevOrders.Count; i++)
             {
                 elevatorNewOrders[i].AssignedEngineerId = prevOrders[i].AssignedEngineerId;
-                elevatorNewOrders[i].ScheduledDate = new DateTime(year, month, prevOrders[i].ScheduledDate.Day) + DateTime.Now.TimeOfDay;
+                elevatorNewOrders[i].ScheduledDate = new DateTime(year, month, prevOrders[i].ScheduledDate.Day) + DateTime.UtcNow.TimeOfDay;
             }
         }
 

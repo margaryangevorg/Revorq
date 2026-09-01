@@ -14,7 +14,7 @@ public class Elevator
     public WarrantyType WarrantyType { get; set; }
     public DateTime? WarrantyDate { get; set; }
     public Priority? Priority { get; set; }
-    public DateTime CreationDate { get; set; } = DateTime.Now;
+    public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public EntityStatus Status { get; set; } = EntityStatus.Active;
 
     public int MonthlyDefaultOrdersCount { get; set; } = 1;

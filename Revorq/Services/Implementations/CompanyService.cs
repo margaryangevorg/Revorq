@@ -95,7 +95,7 @@ public class CompanyService : ICompanyService
         if (invite.IsUsed)
             return ServiceResult<AuthResponse>.Error("This invite token has already been used.");
 
-        if (invite.ExpiresAt < DateTime.Now)
+        if (invite.ExpiresAt < DateTime.UtcNow)
             return ServiceResult<AuthResponse>.Error("This invite token has expired.");
 
         if (invite.Company.Status != CompanyStatus.Approved)
@@ -165,7 +165,7 @@ public class CompanyService : ICompanyService
         if (company.Status != CompanyStatus.Approved)
             return ServiceResult<InviteResponse>.Error("Cannot generate invites for a non-approved company.");
 
-        var expiresAt = DateTime.Now.AddHours(request.ExpiryHours);
+        var expiresAt = DateTime.UtcNow.AddHours(request.ExpiryHours);
 
         var invite = new InvitationToken
         {
@@ -173,7 +173,7 @@ public class CompanyService : ICompanyService
             CompanyId = companyId,
             Role = request.Role,
             ExpiresAt = expiresAt,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         await _tokenRepository.AddAsync(invite);
