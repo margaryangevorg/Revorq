@@ -72,7 +72,7 @@ public class MaintenanceService : IMaintenanceService
             ElevatorId = request.ElevatorId,
             AssignedEngineerId = request.AssignedEngineerId,
             MaintenanceType = request.MaintenanceType,
-            ScheduledDate = request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay,
+            ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc),
             ShortDescription = request.ShortDescription,
             Status = OrderStatus.Open,
             ReporterId = reporterId
@@ -158,7 +158,7 @@ public class MaintenanceService : IMaintenanceService
             return ServiceResult<bool>.Error("You are not allowed to edit this order.");
 
         order.MaintenanceType = request.MaintenanceType;
-        order.ScheduledDate = request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay;
+        order.ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
         order.ShortDescription = request.ShortDescription;
 
         _orderRepository.Update(order);
@@ -239,8 +239,8 @@ public class MaintenanceService : IMaintenanceService
             report = new MaintenanceReport
             {
                 OrderId = orderId,
-                JobStartedDate = request.JobStartedDate,
-                CompletedDate = request.CompletedDate,
+                JobStartedDate = AsUtc(request.JobStartedDate),
+                CompletedDate = AsUtc(request.CompletedDate),
                 IssueDetected = request.IssueDetected,
                 VisualCheckDone = request.VisualCheckDone,
                 AdjustmentDone = request.AdjustmentDone,
@@ -255,8 +255,8 @@ public class MaintenanceService : IMaintenanceService
         else
         {
             report = order.Report;
-            report.JobStartedDate = request.JobStartedDate;
-            report.CompletedDate = request.CompletedDate;
+            report.JobStartedDate = AsUtc(request.JobStartedDate);
+            report.CompletedDate = AsUtc(request.CompletedDate);
             report.IssueDetected = request.IssueDetected;
             report.VisualCheckDone = request.VisualCheckDone;
             report.AdjustmentDone = request.AdjustmentDone;
@@ -295,8 +295,8 @@ public class MaintenanceService : IMaintenanceService
             return ServiceResult<bool>.Error("You are not allowed to edit this report.");
 
         var report = order.Report;
-        report.JobStartedDate = request.JobStartedDate;
-        report.CompletedDate = request.CompletedDate;
+        report.JobStartedDate = AsUtc(request.JobStartedDate);
+        report.CompletedDate = AsUtc(request.CompletedDate);
         report.IssueDetected = request.IssueDetected;
         report.VisualCheckDone = request.VisualCheckDone;
         report.AdjustmentDone = request.AdjustmentDone;
@@ -393,7 +393,7 @@ public class MaintenanceService : IMaintenanceService
         if (!elevatorsToSchedule.Any())
             return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok([]);
 
-        var scheduledDate = new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay;
+        var scheduledDate = DateTime.SpecifyKind(new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
 
         var orders = elevatorsToSchedule.Select(elevator => new MaintenanceOrder
         {
@@ -437,7 +437,7 @@ public class MaintenanceService : IMaintenanceService
             .GroupBy(o => o.ElevatorId)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var scheduledDate = new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay;
+        var scheduledDate = DateTime.SpecifyKind(new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
         var newOrders = new List<MaintenanceOrder>();
 
         foreach (var elevator in elevators)
@@ -483,7 +483,7 @@ public class MaintenanceService : IMaintenanceService
             {
                 var previousEngineerId = prevOrders[i].AssignedEngineerId;
                 elevatorNewOrders[i].AssignedEngineerId = previousEngineerId;
-                elevatorNewOrders[i].ScheduledDate = new DateTime(year, month, prevOrders[i].ScheduledDate.Day) + DateTime.UtcNow.TimeOfDay;
+                elevatorNewOrders[i].ScheduledDate = DateTime.SpecifyKind(new DateTime(year, month, prevOrders[i].ScheduledDate.Day) + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
 
                 if (previousEngineerId.HasValue)
                 {
@@ -580,6 +580,9 @@ public class MaintenanceService : IMaintenanceService
         workbook.SaveAs(stream);
         return stream.ToArray();
     }
+
+    private static DateTime? AsUtc(DateTime? value) =>
+        value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
 
     private static MaintenanceOrderResponse MapToResponse(MaintenanceOrder o) => new()
     {
