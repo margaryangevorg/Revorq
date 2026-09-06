@@ -80,7 +80,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromForm] CreateOrderRequest request)
+    public async Task<IActionResult> CreateOrder([FromForm] OrderRequestInputModel request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -101,7 +101,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateOrder(int id, [FromBody] UpdateOrderRequest request)
+    public async Task<IActionResult> UpdateOrder(int id, [FromForm] OrderRequestInputModel request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();

@@ -3,10 +3,10 @@ using Revorq.DAL.Enums;
 
 namespace Revorq.API.Models.MaintenanceOrderModels;
 
-public class CreateOrderRequest
+public class OrderRequestInputModel
 {
     [FromForm(Name = "elevatorId")]
-    public int ElevatorId { get; set; }
+    public int? ElevatorId { get; set; }
     [FromForm(Name = "assignedEngineerId")]
     public int? AssignedEngineerId { get; set; }
     [FromForm(Name = "maintenanceType")]

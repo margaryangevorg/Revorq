@@ -61,15 +61,18 @@ public class MaintenanceService : IMaintenanceService
         return orders.Select(MapToResponse);
     }
 
-    public async Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request, int reporterId)
+    public async Task<ServiceResult<int>> CreateOrderAsync(OrderRequestInputModel request, int reporterId)
     {
-        var elevator = await _elevatorRepository.GetByIdAsync(request.ElevatorId);
+        if (!request.ElevatorId.HasValue)
+            return ServiceResult<int>.Error("ElevatorId is required.");
+
+        var elevator = await _elevatorRepository.GetByIdAsync(request.ElevatorId.Value);
         if (elevator is null)
             return ServiceResult<int>.Error($"Elevator {request.ElevatorId} not found.");
 
         var order = new MaintenanceOrder
         {
-            ElevatorId = request.ElevatorId,
+            ElevatorId = request.ElevatorId.Value,
             AssignedEngineerId = request.AssignedEngineerId,
             MaintenanceType = request.MaintenanceType,
             ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc),
@@ -111,7 +114,7 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<MaintenanceOrderResponse>.Ok(MapToResponse(order));
     }
 
-    public async Task<ServiceResult<bool>> UpdateOrderAsync(int orderId, UpdateOrderRequest request, int userId)
+    public async Task<ServiceResult<bool>> UpdateOrderAsync(int orderId, OrderRequestInputModel request, int userId)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
         if (order is null)
@@ -131,7 +134,31 @@ public class MaintenanceService : IMaintenanceService
         order.ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
         order.ShortDescription = request.ShortDescription;
 
+        if (request.AssignedEngineerId.HasValue && request.AssignedEngineerId != order.AssignedEngineerId)
+        {
+            order.AssignedEngineerId = request.AssignedEngineerId;
+
+            var history = await _historyRepository.GetByIdAsync(orderId);
+            if (history is null)
+            {
+                history = new MaintenanceOrderHistory { OrderId = orderId };
+                await _historyRepository.AddAsync(history);
+            }
+            else
+            {
+                _historyRepository.Update(history);
+            }
+            history.Assignments.Add(new EngineerAssignment { EngineerId = request.AssignedEngineerId.Value, AssignedDate = DateTime.UtcNow });
+        }
+
         _orderRepository.Update(order);
+
+        if (request.Images.Count > 0)
+        {
+            var uploadTasks = request.Images.Select(img => _storageService.UploadMaintenanceOrderImageAsync(orderId, img));
+            order.ImageUrls.AddRange(await Task.WhenAll(uploadTasks));
+        }
+
         await _orderRepository.SaveChangesAsync();
 
         return ServiceResult<bool>.Ok(true);

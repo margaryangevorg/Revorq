@@ -10,9 +10,9 @@ public interface IMaintenanceService
     Task<IEnumerable<MaintenanceOrderResponse>> GetOrdersUntilDateAsync(DateTime untilDate);
     Task<IEnumerable<MaintenanceOrderResponse>> GetMonthlyAsync(int userId, MaintenanceMonthlyFilterModel filterModel);
     Task<IEnumerable<MaintenanceOrderResponse>> GetUnscheduledAsync();
-    Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request, int reporterId);
+    Task<ServiceResult<int>> CreateOrderAsync(OrderRequestInputModel request, int reporterId);
     Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(int id);
-    Task<ServiceResult<bool>> UpdateOrderAsync(int orderId, UpdateOrderRequest request, int userId);
+    Task<ServiceResult<bool>> UpdateOrderAsync(int orderId, OrderRequestInputModel request, int userId);
     Task<ServiceResult<bool>> AddOrderImagesAsync(int orderId, List<IFormFile> images, int userId);
     Task<ServiceResult<bool>> DeleteOrderImagesAsync(int orderId, List<string> imageUrls, int userId);
     Task<ServiceResult<int>> CreateReportAsync(int orderId, CreateReportRequest request);
