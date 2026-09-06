@@ -162,16 +162,6 @@ public class MaintenanceController : ControllerBase
         return Ok();
     }
 
-    [HttpPut("{orderId}/assign")]
-    [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
-    public async Task<IActionResult> AssignOrder(int orderId, int engineerId)
-    {
-        var result = await _maintenanceService.AssignOrderAsync(orderId, engineerId);
-        if (result.IsNotFound) return NotFound(result.ErrorMessage);
-        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
-        return Ok();
-    }
-
     [HttpPut("{id}/report")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
     public async Task<IActionResult> UpdateReport(int id, [FromBody] UpdateReportRequest request)

@@ -12,7 +12,6 @@ public interface IMaintenanceService
     Task<IEnumerable<MaintenanceOrderResponse>> GetUnscheduledAsync();
     Task<ServiceResult<int>> CreateOrderAsync(CreateOrderRequest request, int reporterId);
     Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(int id);
-    Task<ServiceResult<bool>> AssignOrderAsync(int orderId, int engineerId);
     Task<ServiceResult<bool>> UpdateOrderAsync(int orderId, UpdateOrderRequest request, int userId);
     Task<ServiceResult<bool>> AddOrderImagesAsync(int orderId, List<IFormFile> images, int userId);
     Task<ServiceResult<bool>> DeleteOrderImagesAsync(int orderId, List<string> imageUrls, int userId);
