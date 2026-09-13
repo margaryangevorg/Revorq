@@ -75,7 +75,7 @@ public class MaintenanceService : IMaintenanceService
             ElevatorId = request.ElevatorId.Value,
             AssignedEngineerId = request.AssignedEngineerId,
             MaintenanceType = request.MaintenanceType,
-            ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc),
+            ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date, DateTimeKind.Utc),
             ShortDescription = request.ShortDescription,
             Status = OrderStatus.Open,
             ReporterId = reporterId
@@ -131,7 +131,7 @@ public class MaintenanceService : IMaintenanceService
             return ServiceResult<bool>.Error("You are not allowed to edit this order.");
 
         order.MaintenanceType = request.MaintenanceType;
-        order.ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
+        order.ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date, DateTimeKind.Utc);
         order.ShortDescription = request.ShortDescription;
 
         if (request.AssignedEngineerId.HasValue && request.AssignedEngineerId != order.AssignedEngineerId)
@@ -390,7 +390,7 @@ public class MaintenanceService : IMaintenanceService
         if (!elevatorsToSchedule.Any())
             return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok([]);
 
-        var scheduledDate = DateTime.SpecifyKind(new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
+        var scheduledDate = DateTime.SpecifyKind(new DateTime(year, month, 1), DateTimeKind.Utc);
 
         var orders = elevatorsToSchedule.Select(elevator => new MaintenanceOrder
         {
@@ -434,7 +434,7 @@ public class MaintenanceService : IMaintenanceService
             .GroupBy(o => o.ElevatorId)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var scheduledDate = DateTime.SpecifyKind(new DateTime(year, month, 1) + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
+        var scheduledDate = DateTime.SpecifyKind(new DateTime(year, month, 1), DateTimeKind.Utc);
         var newOrders = new List<MaintenanceOrder>();
 
         foreach (var elevator in elevators)
@@ -480,7 +480,7 @@ public class MaintenanceService : IMaintenanceService
             {
                 var previousEngineerId = prevOrders[i].AssignedEngineerId;
                 elevatorNewOrders[i].AssignedEngineerId = previousEngineerId;
-                elevatorNewOrders[i].ScheduledDate = DateTime.SpecifyKind(new DateTime(year, month, prevOrders[i].ScheduledDate.Day) + DateTime.UtcNow.TimeOfDay, DateTimeKind.Utc);
+                elevatorNewOrders[i].ScheduledDate = DateTime.SpecifyKind(new DateTime(year, month, prevOrders[i].ScheduledDate.Day), DateTimeKind.Utc);
 
                 if (previousEngineerId.HasValue)
                 {
