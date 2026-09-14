@@ -4,5 +4,6 @@ namespace Revorq.DAL.Repositories.Interfaces;
 
 public interface IMaintenanceOrderHistoryRepository : IRepository<MaintenanceOrderHistory>
 {
-    Task<IEnumerable<MaintenanceOrderHistory>> GetByOrderIdsAsync(IEnumerable<int> orderIds);
+    new Task<MaintenanceOrderHistory?> GetByIdAsync(long id);
+    Task<IEnumerable<MaintenanceOrderHistory>> GetByOrderIdsAsync(IEnumerable<long> orderIds);
 }

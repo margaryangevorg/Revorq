@@ -91,7 +91,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(long id)
     {
         var result = await _maintenanceService.GetByIdAsync(id);
 
@@ -101,7 +101,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateOrder(int id, [FromForm] OrderRequestInputModel request)
+    public async Task<IActionResult> UpdateOrder(long id, [FromForm] OrderRequestInputModel request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -113,7 +113,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPost("{id}/order/images")]
-    public async Task<IActionResult> AddOrderImages(int id, [FromForm] List<IFormFile> images)
+    public async Task<IActionResult> AddOrderImages(long id, [FromForm] List<IFormFile> images)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -125,7 +125,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpDelete("{id}/order/images")]
-    public async Task<IActionResult> DeleteOrderImages(int id, [FromBody] List<string> imageUrls)
+    public async Task<IActionResult> DeleteOrderImages(long id, [FromBody] List<string> imageUrls)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -138,7 +138,7 @@ public class MaintenanceController : ControllerBase
 
     [HttpPost("{id}/report/images")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
-    public async Task<IActionResult> AddReportImages(int id, [FromForm] List<IFormFile> images)
+    public async Task<IActionResult> AddReportImages(long id, [FromForm] List<IFormFile> images)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -151,7 +151,7 @@ public class MaintenanceController : ControllerBase
 
     [HttpDelete("{id}/report/images")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
-    public async Task<IActionResult> DeleteReportImages(int id, [FromBody] List<string> imageUrls)
+    public async Task<IActionResult> DeleteReportImages(long id, [FromBody] List<string> imageUrls)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -164,7 +164,7 @@ public class MaintenanceController : ControllerBase
 
     [HttpPut("{id}/report")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)}")]
-    public async Task<IActionResult> UpdateReport(int id, [FromBody] UpdateReportRequest request)
+    public async Task<IActionResult> UpdateReport(long id, [FromBody] UpdateReportRequest request)
     {
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
@@ -177,7 +177,7 @@ public class MaintenanceController : ControllerBase
 
     [HttpPost("{id}/report")]
     [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Manager)},{nameof(Role.MaintenanceEngineer)}")]
-    public async Task<IActionResult> CreateReport(int id, [FromForm] CreateReportRequest request)
+    public async Task<IActionResult> CreateReport(long id, [FromForm] CreateReportRequest request)
     {
         var result = await _maintenanceService.CreateReportAsync(id, request);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);
@@ -187,7 +187,7 @@ public class MaintenanceController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(long id)
     {
         var result = await _maintenanceService.DeleteAsync(id);
         if (result.IsNotFound) return NotFound(result.ErrorMessage);

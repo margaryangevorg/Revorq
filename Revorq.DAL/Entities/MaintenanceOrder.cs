@@ -4,7 +4,7 @@ namespace Revorq.DAL.Entities;
 
 public class MaintenanceOrder : IAuditable
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public int ElevatorId { get; set; }
     public Elevator Elevator { get; set; } = null!;

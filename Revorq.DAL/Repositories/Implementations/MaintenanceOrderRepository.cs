@@ -10,6 +10,9 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
 {
     public MaintenanceOrderRepository(AppDbContext context) : base(context) { }
 
+    public new async Task<MaintenanceOrder?> GetByIdAsync(long id) =>
+        await _dbSet.FindAsync(id);
+
     public async Task AddOrdersAsync(IEnumerable<MaintenanceOrder> orders)
     {
         await _context.MaintenanceOrders.AddRangeAsync(orders);
@@ -49,7 +52,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
             .ToListAsync();
     }
 
-    public async Task<MaintenanceOrder?> GetByIdWithReportAsync(int id)
+    public async Task<MaintenanceOrder?> GetByIdWithReportAsync(long id)
     {
         return await _context.MaintenanceOrders
             .Include(o => o.Elevator)

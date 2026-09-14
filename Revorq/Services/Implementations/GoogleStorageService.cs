@@ -43,13 +43,13 @@ public class GoogleStorageService : IStorageService
         return UploadAsync($"companies/{companyId}/logo_{Guid.NewGuid()}{ext}", file);
     }
 
-    public Task<string> UploadMaintenanceOrderImageAsync(int orderId, IFormFile file)
+    public Task<string> UploadMaintenanceOrderImageAsync(long orderId, IFormFile file)
     {
         var ext = Path.GetExtension(file.FileName);
         return UploadAsync($"maintenanceOrders/{orderId}/images/{Guid.NewGuid()}{ext}", file);
     }
 
-    public Task<string> UploadMaintenanceReportImageAsync(int orderId, IFormFile file)
+    public Task<string> UploadMaintenanceReportImageAsync(long orderId, IFormFile file)
     {
         var ext = Path.GetExtension(file.FileName);
         return UploadAsync($"maintenanceReports/{orderId}/images/{Guid.NewGuid()}{ext}", file);

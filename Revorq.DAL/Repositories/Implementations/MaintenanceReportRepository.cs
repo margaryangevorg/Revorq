@@ -7,4 +7,7 @@ namespace Revorq.DAL.Repositories.Implementations;
 public class MaintenanceReportRepository : Repository<MaintenanceReport>, IMaintenanceReportRepository
 {
     public MaintenanceReportRepository(AppDbContext context) : base(context) { }
+
+    public new async Task<MaintenanceReport?> GetByIdAsync(long id) =>
+        await _dbSet.FindAsync(id);
 }

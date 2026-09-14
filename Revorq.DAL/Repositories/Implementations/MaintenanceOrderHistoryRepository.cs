@@ -9,7 +9,10 @@ public class MaintenanceOrderHistoryRepository : Repository<MaintenanceOrderHist
 {
     public MaintenanceOrderHistoryRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<MaintenanceOrderHistory>> GetByOrderIdsAsync(IEnumerable<int> orderIds)
+    public new async Task<MaintenanceOrderHistory?> GetByIdAsync(long id) =>
+        await _dbSet.FindAsync(id);
+
+    public async Task<IEnumerable<MaintenanceOrderHistory>> GetByOrderIdsAsync(IEnumerable<long> orderIds)
     {
         return await _context.MaintenanceOrderHistories
             .Where(h => orderIds.Contains(h.OrderId))

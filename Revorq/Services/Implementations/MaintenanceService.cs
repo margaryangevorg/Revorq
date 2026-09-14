@@ -61,14 +61,14 @@ public class MaintenanceService : IMaintenanceService
         return orders.Select(MapToResponse);
     }
 
-    public async Task<ServiceResult<int>> CreateOrderAsync(OrderRequestInputModel request, int reporterId)
+    public async Task<ServiceResult<long>> CreateOrderAsync(OrderRequestInputModel request, int reporterId)
     {
         if (!request.ElevatorId.HasValue)
-            return ServiceResult<int>.Error("ElevatorId is required.");
+            return ServiceResult<long>.Error("ElevatorId is required.");
 
         var elevator = await _elevatorRepository.GetByIdAsync(request.ElevatorId.Value);
         if (elevator is null)
-            return ServiceResult<int>.Error($"Elevator {request.ElevatorId} not found.");
+            return ServiceResult<long>.Error($"Elevator {request.ElevatorId} not found.");
 
         var order = new MaintenanceOrder
         {
@@ -102,10 +102,10 @@ public class MaintenanceService : IMaintenanceService
             await _orderRepository.SaveChangesAsync();
         }
 
-        return ServiceResult<int>.Ok(order.Id);
+        return ServiceResult<long>.Ok(order.Id);
     }
 
-    public async Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(int id)
+    public async Task<ServiceResult<MaintenanceOrderResponse>> GetByIdAsync(long id)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(id);
         if (order is null)
@@ -114,7 +114,7 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<MaintenanceOrderResponse>.Ok(MapToResponse(order));
     }
 
-    public async Task<ServiceResult<bool>> UpdateOrderAsync(int orderId, OrderRequestInputModel request, int userId)
+    public async Task<ServiceResult<bool>> UpdateOrderAsync(long orderId, OrderRequestInputModel request, int userId)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
         if (order is null)
@@ -164,7 +164,7 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> AddOrderImagesAsync(int orderId, List<IFormFile> images, int userId)
+    public async Task<ServiceResult<bool>> AddOrderImagesAsync(long orderId, List<IFormFile> images, int userId)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
         if (order is null)
@@ -189,7 +189,7 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> DeleteOrderImagesAsync(int orderId, List<string> imageUrls, int userId)
+    public async Task<ServiceResult<bool>> DeleteOrderImagesAsync(long orderId, List<string> imageUrls, int userId)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
         if (order is null)
@@ -214,14 +214,14 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<int>> CreateReportAsync(int orderId, CreateReportRequest request)
+    public async Task<ServiceResult<long>> CreateReportAsync(long orderId, CreateReportRequest request)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(orderId);
         if (order is null)
-            return ServiceResult<int>.NotFound($"Order {orderId} not found.");
+            return ServiceResult<long>.NotFound($"Order {orderId} not found.");
 
         if (order.Status == OrderStatus.Done)
-            return ServiceResult<int>.Error("Order is already completed.");
+            return ServiceResult<long>.Error("Order is already completed.");
 
         var uploadedUrls = new List<string>();
         if (request.Images is { Count: > 0 })
@@ -271,10 +271,10 @@ public class MaintenanceService : IMaintenanceService
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 
-        return ServiceResult<int>.Ok(report.OrderId);
+        return ServiceResult<long>.Ok(report.OrderId);
     }
 
-    public async Task<ServiceResult<bool>> UpdateReportAsync(int orderId, UpdateReportRequest request, int userId)
+    public async Task<ServiceResult<bool>> UpdateReportAsync(long orderId, UpdateReportRequest request, int userId)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(orderId);
         if (order is null)
@@ -311,7 +311,7 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> AddReportImagesAsync(int orderId, List<IFormFile> images, int userId)
+    public async Task<ServiceResult<bool>> AddReportImagesAsync(long orderId, List<IFormFile> images, int userId)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(orderId);
         if (order is null)
@@ -337,7 +337,7 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> DeleteReportImagesAsync(int orderId, List<string> imageUrls, int userId)
+    public async Task<ServiceResult<bool>> DeleteReportImagesAsync(long orderId, List<string> imageUrls, int userId)
     {
         var order = await _orderRepository.GetByIdWithReportAsync(orderId);
         if (order is null)
@@ -363,7 +363,7 @@ public class MaintenanceService : IMaintenanceService
         return ServiceResult<bool>.Ok(true);
     }
 
-    public async Task<ServiceResult<bool>> DeleteAsync(int id)
+    public async Task<ServiceResult<bool>> DeleteAsync(long id)
     {
         var order = await _orderRepository.GetByIdAsync(id);
         if (order is null)

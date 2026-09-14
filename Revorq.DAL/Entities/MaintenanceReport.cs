@@ -2,7 +2,7 @@ namespace Revorq.DAL.Entities;
 
 public class MaintenanceReport : IAuditable
 {
-    public int OrderId { get; set; }
+    public long OrderId { get; set; }
     public MaintenanceOrder MaintenanceOrder { get; set; } = null!;
 
     public DateTime? JobStartedDate { get; set; }

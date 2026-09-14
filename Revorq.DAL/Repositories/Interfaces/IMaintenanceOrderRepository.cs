@@ -5,7 +5,8 @@ namespace Revorq.DAL.Repositories.Interfaces;
 
 public interface IMaintenanceOrderRepository : IRepository<MaintenanceOrder>
 {
-    Task<MaintenanceOrder?> GetByIdWithReportAsync(int id);
+    new Task<MaintenanceOrder?> GetByIdAsync(long id);
+    Task<MaintenanceOrder?> GetByIdWithReportAsync(long id);
     Task AddOrdersAsync(IEnumerable<MaintenanceOrder> orders);
     Task<IEnumerable<int>> GetScheduledElevatorIdsAsync(int companyId, int year, int month);
     Task<IEnumerable<MaintenanceOrder>> GetUnassignedScheduledOrdersAsync(int year, int month, int companyId);
