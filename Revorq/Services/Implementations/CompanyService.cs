@@ -19,6 +19,7 @@ public class CompanyService : ICompanyService
     private readonly IStorageService _storageService;
     private readonly UserManager<AppUser> _userManager;
     private readonly IJwtService _jwtService;
+    private readonly ILogger<CompanyService> _logger;
 
     public CompanyService(
         ICompanyRepository companyRepository,
@@ -28,7 +29,8 @@ public class CompanyService : ICompanyService
         IUserBuildingAccessRepository accessRepository,
         IStorageService storageService,
         UserManager<AppUser> userManager,
-        IJwtService jwtService)
+        IJwtService jwtService,
+        ILogger<CompanyService> logger)
     {
         _companyRepository = companyRepository;
         _tokenRepository = tokenRepository;
@@ -38,6 +40,7 @@ public class CompanyService : ICompanyService
         _storageService = storageService;
         _userManager = userManager;
         _jwtService = jwtService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<RegisterCompanyResponse>> RegisterCompanyAsync(RegisterCompanyRequest request)
@@ -237,7 +240,16 @@ public class CompanyService : ICompanyService
             return ServiceResult<bool>.NotFound($"Company {companyId} not found.");
 
         if (!string.IsNullOrEmpty(company.LogoUrl))
-            await _storageService.DeleteFileAsync(company.LogoUrl);
+        {
+            try
+            {
+                await _storageService.DeleteFileAsync(company.LogoUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete old logo for company {CompanyId} at {LogoUrl}", companyId, company.LogoUrl);
+            }
+        }
 
         company.LogoUrl = await _storageService.UploadCompanyLogoAsync(companyId, logo);
         _companyRepository.Update(company);
