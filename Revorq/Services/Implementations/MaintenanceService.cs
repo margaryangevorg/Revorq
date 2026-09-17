@@ -138,16 +138,7 @@ public class MaintenanceService : IMaintenanceService
         {
             order.AssignedEngineerId = request.AssignedEngineerId;
 
-            var history = await _historyRepository.GetByIdAsync(orderId);
-            if (history is null)
-            {
-                history = new MaintenanceOrderHistory { OrderId = orderId };
-                await _historyRepository.AddAsync(history);
-            }
-            else
-            {
-                _historyRepository.Update(history);
-            }
+            var history = await GetOrCreateHistoryAsync(orderId);
             history.Assignments.Add(new EngineerAssignment { EngineerId = request.AssignedEngineerId.Value, AssignedDate = DateTime.UtcNow });
         }
 
@@ -230,14 +221,18 @@ public class MaintenanceService : IMaintenanceService
             uploadedUrls.AddRange(await Task.WhenAll(uploadTasks));
         }
 
+        var newJobStartedDate = AsUtc(request.JobStartedDate);
+        var newCompletedDate = AsUtc(request.CompletedDate);
+
         MaintenanceReport report;
+        bool timeChanged;
         if (order.Report is null)
         {
             report = new MaintenanceReport
             {
                 OrderId = orderId,
-                JobStartedDate = AsUtc(request.JobStartedDate),
-                CompletedDate = AsUtc(request.CompletedDate),
+                JobStartedDate = newJobStartedDate,
+                CompletedDate = newCompletedDate,
                 IssueDetected = request.IssueDetected,
                 VisualCheckDone = request.VisualCheckDone,
                 AdjustmentDone = request.AdjustmentDone,
@@ -248,12 +243,14 @@ public class MaintenanceService : IMaintenanceService
             };
 
             await _reportRepository.AddAsync(report);
+            timeChanged = newJobStartedDate.HasValue || newCompletedDate.HasValue;
         }
         else
         {
             report = order.Report;
-            report.JobStartedDate = AsUtc(request.JobStartedDate);
-            report.CompletedDate = AsUtc(request.CompletedDate);
+            timeChanged = report.JobStartedDate != newJobStartedDate || report.CompletedDate != newCompletedDate;
+            report.JobStartedDate = newJobStartedDate;
+            report.CompletedDate = newCompletedDate;
             report.IssueDetected = request.IssueDetected;
             report.VisualCheckDone = request.VisualCheckDone;
             report.AdjustmentDone = request.AdjustmentDone;
@@ -264,6 +261,12 @@ public class MaintenanceService : IMaintenanceService
                 report.ImageUrls.AddRange(uploadedUrls);
 
             _reportRepository.Update(report);
+        }
+
+        if (timeChanged)
+        {
+            var history = await GetOrCreateHistoryAsync(orderId);
+            history.ReportTimeChanges.Add(new ReportTimeChange { JobStartedDate = newJobStartedDate, CompletedDate = newCompletedDate, ChangedDate = DateTime.UtcNow });
         }
 
         if (request.Status.HasValue)
@@ -292,14 +295,24 @@ public class MaintenanceService : IMaintenanceService
             return ServiceResult<bool>.Error("You are not allowed to edit this report.");
 
         var report = order.Report;
-        report.JobStartedDate = AsUtc(request.JobStartedDate);
-        report.CompletedDate = AsUtc(request.CompletedDate);
+        var newJobStartedDate = AsUtc(request.JobStartedDate);
+        var newCompletedDate = AsUtc(request.CompletedDate);
+        var timeChanged = report.JobStartedDate != newJobStartedDate || report.CompletedDate != newCompletedDate;
+
+        report.JobStartedDate = newJobStartedDate;
+        report.CompletedDate = newCompletedDate;
         report.IssueDetected = request.IssueDetected;
         report.VisualCheckDone = request.VisualCheckDone;
         report.AdjustmentDone = request.AdjustmentDone;
         report.CleaningDone = request.CleaningDone;
         report.IsPartChange = request.IsPartChange;
         report.Notes = request.Notes;
+
+        if (timeChanged)
+        {
+            var history = await GetOrCreateHistoryAsync(orderId);
+            history.ReportTimeChanges.Add(new ReportTimeChange { JobStartedDate = newJobStartedDate, CompletedDate = newCompletedDate, ChangedDate = DateTime.UtcNow });
+        }
 
         if (request.Status.HasValue)
             order.Status = request.Status.Value;
@@ -576,6 +589,21 @@ public class MaintenanceService : IMaintenanceService
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
         return stream.ToArray();
+    }
+
+    private async Task<MaintenanceOrderHistory> GetOrCreateHistoryAsync(long orderId)
+    {
+        var history = await _historyRepository.GetByIdAsync(orderId);
+        if (history is null)
+        {
+            history = new MaintenanceOrderHistory { OrderId = orderId };
+            await _historyRepository.AddAsync(history);
+        }
+        else
+        {
+            _historyRepository.Update(history);
+        }
+        return history;
     }
 
     private static DateTime? AsUtc(DateTime? value) =>

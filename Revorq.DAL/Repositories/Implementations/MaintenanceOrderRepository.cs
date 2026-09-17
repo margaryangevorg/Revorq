@@ -10,7 +10,7 @@ public class MaintenanceOrderRepository : Repository<MaintenanceOrder>, IMainten
 {
     public MaintenanceOrderRepository(AppDbContext context) : base(context) { }
 
-    public new async Task<MaintenanceOrder?> GetByIdAsync(long id) =>
+    public async Task<MaintenanceOrder?> GetByIdAsync(long id) =>
         await _dbSet.FindAsync(id);
 
     public async Task AddOrdersAsync(IEnumerable<MaintenanceOrder> orders)

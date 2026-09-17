@@ -6,4 +6,5 @@ public class MaintenanceOrderHistory
     public MaintenanceOrder Order { get; set; } = null!;
 
     public List<EngineerAssignment> Assignments { get; set; } = [];
+    public List<ReportTimeChange> ReportTimeChanges { get; set; } = [];
 }

@@ -213,6 +213,12 @@ builder.Entity<MaintenanceReport>(e =>
                  v => JsonSerializer.Deserialize<List<EngineerAssignment>>(v, (JsonSerializerOptions?)null) ?? new List<EngineerAssignment>())
              .HasColumnType("text");
 
+            e.Property(h => h.ReportTimeChanges)
+             .HasConversion(
+                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                 v => JsonSerializer.Deserialize<List<ReportTimeChange>>(v, (JsonSerializerOptions?)null) ?? new List<ReportTimeChange>())
+             .HasColumnType("text");
+
             e.HasOne(h => h.Order)
              .WithOne(o => o.History)
              .HasForeignKey<MaintenanceOrderHistory>(h => h.OrderId)

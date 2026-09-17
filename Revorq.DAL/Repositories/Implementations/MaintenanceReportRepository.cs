@@ -8,6 +8,6 @@ public class MaintenanceReportRepository : Repository<MaintenanceReport>, IMaint
 {
     public MaintenanceReportRepository(AppDbContext context) : base(context) { }
 
-    public new async Task<MaintenanceReport?> GetByIdAsync(long id) =>
+    public async Task<MaintenanceReport?> GetByIdAsync(long id) =>
         await _dbSet.FindAsync(id);
 }

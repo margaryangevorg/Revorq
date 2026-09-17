@@ -9,7 +9,7 @@ public class MaintenanceOrderHistoryRepository : Repository<MaintenanceOrderHist
 {
     public MaintenanceOrderHistoryRepository(AppDbContext context) : base(context) { }
 
-    public new async Task<MaintenanceOrderHistory?> GetByIdAsync(long id) =>
+    public async Task<MaintenanceOrderHistory?> GetByIdAsync(long id) =>
         await _dbSet.FindAsync(id);
 
     public async Task<IEnumerable<MaintenanceOrderHistory>> GetByOrderIdsAsync(IEnumerable<long> orderIds)
