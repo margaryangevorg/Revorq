@@ -101,9 +101,13 @@ builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IInvitationTokenRepository, InvitationTokenRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 
 // Storage
 builder.Services.AddSingleton<IStorageService, GoogleStorageService>();
+
+// Push notifications
+builder.Services.AddScoped<IPushNotificationService, FirebasePushNotificationService>();
 
 // Services
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -114,6 +118,7 @@ builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBuildingAccessService, BuildingAccessService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
 
 var app = builder.Build();
 

@@ -18,6 +18,7 @@ obj/
 appsettings.Development.json
 *.env
 google-credentials.json
+firebase-credentials.json
 
 ## NuGet
 *.nupkg
