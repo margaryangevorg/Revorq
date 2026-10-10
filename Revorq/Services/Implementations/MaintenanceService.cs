@@ -17,7 +17,11 @@ public class MaintenanceService : IMaintenanceService
     private readonly IMaintenanceReportRepository _reportRepository;
     private readonly IMaintenanceOrderHistoryRepository _historyRepository;
     private readonly IElevatorRepository _elevatorRepository;
+    private readonly IBuildingRepository _buildingRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IUserBuildingAccessRepository _accessRepository;
     private readonly IStorageService _storageService;
+    private readonly IPushNotificationService _pushNotificationService;
     private readonly UserManager<AppUser> _userManager;
 
     public MaintenanceService(
@@ -25,14 +29,22 @@ public class MaintenanceService : IMaintenanceService
         IMaintenanceReportRepository reportRepository,
         IMaintenanceOrderHistoryRepository historyRepository,
         IElevatorRepository elevatorRepository,
+        IBuildingRepository buildingRepository,
+        IUserRepository userRepository,
+        IUserBuildingAccessRepository accessRepository,
         IStorageService storageService,
+        IPushNotificationService pushNotificationService,
         UserManager<AppUser> userManager)
     {
         _orderRepository = orderRepository;
         _reportRepository = reportRepository;
         _historyRepository = historyRepository;
         _elevatorRepository = elevatorRepository;
+        _buildingRepository = buildingRepository;
+        _userRepository = userRepository;
+        _accessRepository = accessRepository;
         _storageService = storageService;
+        _pushNotificationService = pushNotificationService;
         _userManager = userManager;
     }
 
@@ -102,6 +114,8 @@ public class MaintenanceService : IMaintenanceService
             await _orderRepository.SaveChangesAsync();
         }
 
+        await NotifyOrderCreatedAsync(order, elevator.BuildingId);
+
         return ServiceResult<long>.Ok(order.Id);
     }
 
@@ -134,9 +148,11 @@ public class MaintenanceService : IMaintenanceService
         order.ScheduledDate = DateTime.SpecifyKind(request.ScheduledDate.Date, DateTimeKind.Utc);
         order.ShortDescription = request.ShortDescription;
 
+        int? newlyAssignedEngineerId = null;
         if (request.AssignedEngineerId.HasValue && request.AssignedEngineerId != order.AssignedEngineerId)
         {
             order.AssignedEngineerId = request.AssignedEngineerId;
+            newlyAssignedEngineerId = request.AssignedEngineerId;
 
             var history = await GetOrCreateHistoryAsync(orderId);
             history.Assignments.Add(new EngineerAssignment { EngineerId = request.AssignedEngineerId.Value, AssignedDate = DateTime.UtcNow });
@@ -151,6 +167,21 @@ public class MaintenanceService : IMaintenanceService
         }
 
         await _orderRepository.SaveChangesAsync();
+
+        if (newlyAssignedEngineerId.HasValue)
+        {
+            await _pushNotificationService.SendToUsersAsync(
+                [newlyAssignedEngineerId.Value],
+                "Order Assigned",
+                "You have been assigned to a maintenance order.",
+                new Dictionary<string, string>
+                {
+                    ["type"] = "order_assigned",
+                    ["orderId"] = order.Id.ToString(),
+                    ["maintenanceOrderId"] = order.Id.ToString(),
+                    ["status"] = ((int)order.Status).ToString()
+                });
+        }
 
         return ServiceResult<bool>.Ok(true);
     }
@@ -269,10 +300,17 @@ public class MaintenanceService : IMaintenanceService
             history.ReportTimeChanges.Add(new ReportTimeChange { JobStartedDate = newJobStartedDate, CompletedDate = newCompletedDate, ChangedDate = DateTime.UtcNow });
         }
 
+        var previousStatus = order.Status;
         if (request.Status.HasValue)
             order.Status = request.Status.Value;
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
+
+        if (request.Status.HasValue && request.Status.Value != previousStatus &&
+            request.Status.Value is OrderStatus.InProgress or OrderStatus.Done)
+        {
+            await NotifyCustomersOfStatusChangeAsync(order);
+        }
 
         return ServiceResult<long>.Ok(report.OrderId);
     }
@@ -484,6 +522,8 @@ public class MaintenanceService : IMaintenanceService
             .GroupBy(o => o.ElevatorId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
+        var newlyAssignedEngineerIds = new HashSet<int>();
+
         foreach (var (elevatorId, elevatorNewOrders) in newOrdersByElevator)
         {
             if (!prevMonthByElevator.TryGetValue(elevatorId, out var prevOrders))
@@ -502,12 +542,25 @@ public class MaintenanceService : IMaintenanceService
                         Order = elevatorNewOrders[i],
                         Assignments = [new EngineerAssignment { EngineerId = previousEngineerId.Value, AssignedDate = DateTime.UtcNow }]
                     });
+                    newlyAssignedEngineerIds.Add(previousEngineerId.Value);
                 }
             }
         }
 
         if (newOrders.Any())
             await _orderRepository.SaveChangesAsync();
+
+        if (newlyAssignedEngineerIds.Count > 0)
+        {
+            await _pushNotificationService.SendToUsersAsync(
+                newlyAssignedEngineerIds,
+                "Orders Assigned",
+                "You have been assigned to new maintenance orders for this month.",
+                new Dictionary<string, string>
+                {
+                    ["type"] = "order_assigned"
+                });
+        }
 
         return ServiceResult<IEnumerable<MaintenanceOrderResponse>>.Ok(newOrders.Select(MapToResponse));
     }
@@ -589,6 +642,65 @@ public class MaintenanceService : IMaintenanceService
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
         return stream.ToArray();
+    }
+
+    private async Task NotifyOrderCreatedAsync(MaintenanceOrder order, int buildingId)
+    {
+        var building = await _buildingRepository.GetByIdAsync(buildingId);
+        if (building is null)
+            return;
+
+        var admins = await _userRepository.GetCompanyUsersByRoleAsync(building.CompanyId, nameof(Role.Admin));
+        var managers = await _userRepository.GetCompanyUsersByRoleAsync(building.CompanyId, nameof(Role.Manager));
+
+        var recipientIds = admins.Select(u => u.Id)
+            .Concat(managers.Select(u => u.Id))
+            .ToHashSet();
+
+        if (order.AssignedEngineerId.HasValue)
+            recipientIds.Add(order.AssignedEngineerId.Value);
+
+        await _pushNotificationService.SendToUsersAsync(
+            recipientIds,
+            "New Maintenance Order",
+            string.IsNullOrWhiteSpace(order.ShortDescription) ? "A new maintenance order was reported." : order.ShortDescription,
+            new Dictionary<string, string>
+            {
+                ["type"] = "order_created",
+                ["orderId"] = order.Id.ToString(),
+                ["maintenanceOrderId"] = order.Id.ToString(),
+                ["status"] = ((int)order.Status).ToString()
+            });
+    }
+
+    private async Task NotifyCustomersOfStatusChangeAsync(MaintenanceOrder order)
+    {
+        var buildingUsers = await _accessRepository.GetUsersWithAccessAsync(order.Elevator.Building.Id);
+        var customers = await _userManager.GetUsersInRoleAsync(nameof(Role.Customer));
+        var customerIds = customers.Select(c => c.Id).ToHashSet();
+
+        var recipientIds = buildingUsers.Where(u => customerIds.Contains(u.Id)).Select(u => u.Id).ToHashSet();
+        if (customerIds.Contains(order.ReporterId))
+            recipientIds.Add(order.ReporterId);
+
+        if (recipientIds.Count == 0)
+            return;
+
+        var (type, title, body) = order.Status == OrderStatus.InProgress
+            ? ("order_started", "Maintenance Started", "Work has started on your maintenance order.")
+            : ("order_completed", "Maintenance Completed", "Your maintenance order has been completed.");
+
+        await _pushNotificationService.SendToUsersAsync(
+            recipientIds,
+            title,
+            body,
+            new Dictionary<string, string>
+            {
+                ["type"] = type,
+                ["orderId"] = order.Id.ToString(),
+                ["maintenanceOrderId"] = order.Id.ToString(),
+                ["status"] = ((int)order.Status).ToString()
+            });
     }
 
     private async Task<MaintenanceOrderHistory> GetOrCreateHistoryAsync(long orderId)

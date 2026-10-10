@@ -20,6 +20,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<MaintenanceReport> MaintenanceReports => Set<MaintenanceReport>();
     public DbSet<MaintenanceOrderHistory> MaintenanceOrderHistories => Set<MaintenanceOrderHistory>();
     public DbSet<UserBuildingAccess> UserBuildingAccesses => Set<UserBuildingAccess>();
+    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -168,6 +169,19 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
              .OnDelete(DeleteBehavior.Restrict);
 
             e.HasIndex(o => new { o.AssignedEngineerId, o.ScheduledDate });
+        });
+
+        builder.Entity<DeviceToken>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Token).IsRequired().HasMaxLength(300);
+            e.Property(t => t.Platform).IsRequired().HasMaxLength(20);
+            e.HasIndex(t => t.Token).IsUnique();
+
+            e.HasOne(t => t.User)
+             .WithMany()
+             .HasForeignKey(t => t.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<UserBuildingAccess>(e =>
